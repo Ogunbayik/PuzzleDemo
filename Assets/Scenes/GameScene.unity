@@ -485,7 +485,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &862781625
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -858,29 +858,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a92c7ec3cf1a37c4581494617e018d46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoardManager
-  width: 8
-  height: 8
-  tilePrefab: {fileID: 2609204484151538213, guid: a9bca5b482a494f4295233ad60b15f03, type: 3}
+  playerCount: 2
+  spriteCount: 3
+  bombCount: 1
+  width: 5
+  height: 5
   tileScale: 2
+  tilePrefab: {fileID: 2609204484151538213, guid: a9bca5b482a494f4295233ad60b15f03, type: 3}
   questionSprite: {fileID: 21300000, guid: 1bc79cde694dfa2478804dc7071e2b06, type: 3}
-  executeButton: {fileID: 289327084}
-  cancelButton: {fileID: 936392163}
-  playerOneSprites:
+  bombSprite: {fileID: 21300000, guid: 3f3dd226052557b4bb4994d73b1f01ae, type: 3}
+  checkColor: {r: 0.54905653, g: 1, b: 0.9990482, a: 1}
+  playerOneColor: {r: 0.5562066, g: 0.9924528, b: 0.40259874, a: 1}
+  playerTwoColor: {r: 1, g: 0.36037737, b: 0.36037737, a: 1}
+  allGreenTypeSprites:
   - {fileID: 21300000, guid: c24018e711bb1994682c62851a5f30a6, type: 3}
   - {fileID: 21300000, guid: d951bd57a8058ac4d93d06f384ab7785, type: 3}
   - {fileID: 21300000, guid: ee2552c6a4af58942b7470a19b7a96fc, type: 3}
   - {fileID: 21300000, guid: 9b33431f55823d143b43db2a7263dec5, type: 3}
-  - {fileID: 21300000, guid: 68c434aa6d9715648a070d5972e4bd66, type: 3}
-  playerOneColor: {r: 0.775, g: 1, b: 0.6999999, a: 1}
-  playerTwoSprites:
+  - {fileID: 21300000, guid: f6946ff57548ab340b590a1079896172, type: 3}
+  allRedTypeSprites:
   - {fileID: 21300000, guid: a8986f824c4c83c4d959e4ba27091dd7, type: 3}
   - {fileID: 21300000, guid: 1615084741173754a9393aa044599ccb, type: 3}
   - {fileID: 21300000, guid: 9076d25f677813540a7c2a079523378b, type: 3}
   - {fileID: 21300000, guid: 02806d3380fc5f04d852b45fb8bc5497, type: 3}
   - {fileID: 21300000, guid: c458d2e96e603b54a8b9c2691b3efd2b, type: 3}
-  playerTwoColor: {r: 1, g: 0.65471697, b: 0.65471697, a: 1}
-  playerOneTiles: []
-  playerTwoTiles: []
+  availableSprites: []
 --- !u!4 &1680656359
 Transform:
   m_ObjectHideFlags: 0
@@ -922,7 +924,7 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1953035064}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -979,7 +981,7 @@ Transform:
   m_GameObject: {fileID: 1953035064}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: 6, y: 7, z: 0}
+  m_LocalPosition: {x: 6, y: 7, z: 3}
   m_LocalScale: {x: 4, y: 1, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []

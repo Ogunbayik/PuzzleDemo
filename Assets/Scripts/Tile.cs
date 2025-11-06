@@ -1,30 +1,30 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Tile : MonoBehaviour
 {
-    private MeshRenderer meshRenderer;
-
-    [SerializeField] private Image tileImage;
+    [SerializeField] private Image hiddenImage;
+    [SerializeField] private Image actualImage;
     [SerializeField] private Image tileBackgroundImage;
 
+    private Color tileColor;
     private int tileHeight;
     private int tileWidth;
 
-    private bool isClickable = true;
-    private void Awake()
+    private bool canSelect = true;
+    public void SetupTile(int height, int width, Sprite selected, Sprite hiddenSprite)
     {
-        meshRenderer = GetComponentInChildren<MeshRenderer>();
-    }
-    public void SetupTile(int height, int width, Sprite sprite)
-    {
+        //Board da tilelarý nötr olarak ayarlýyoruz
         tileHeight = height;
         tileWidth = width;
-        tileImage.sprite = sprite;
+        actualImage.sprite = selected;
+        hiddenImage.sprite = hiddenSprite;
     }
-    public void SetTileType(int row, int col)
+    public void SetTileColor(Color color)
     {
-
+        //Board daki tilelarýn rengini ayarlýyoruz
+        tileColor = color;
     }
     public void SetBackgroundColor(Color color)
     {
@@ -32,21 +32,23 @@ public class Tile : MonoBehaviour
     }
     public void SetTileSprite(Sprite sprite)
     {
-        tileImage.sprite = sprite;
+        actualImage.sprite = sprite;
     }
-    public void SetClickable(bool canClick)
+    public void SetCanSelect(bool isSelect)
     {
-        isClickable = canClick;
+        canSelect = isSelect;
     }
-    public bool IsClickable()
+    public bool CanSelect()
     {
-        return isClickable;
+        return canSelect;
     }
+    public Sprite GetActualSprite()
+    {
+        return actualImage.sprite;
+    }
+
     public void OnMouseDown()
     {
         BoardManager.Instance.SelectTile(this);
     }
-
-    public int GetTileWidth() { return tileWidth; }
-    public int GetTileHeight() { return tileHeight; }
 }

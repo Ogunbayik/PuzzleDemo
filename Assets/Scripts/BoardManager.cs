@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Tilemaps;
@@ -8,26 +9,30 @@ public class BoardManager : MonoBehaviour
 {
     public static BoardManager Instance;
 
-    public Color[,] boardColors;
-
+    [Header("Game Settings")]
+    [SerializeField] private int playerCount;
+    [SerializeField] private int spriteCount;
+    [SerializeField] private int bombCount;
     [Header("Board Settings")]
     [SerializeField] private int width;
     [SerializeField] private int height;
-    [SerializeField] private GameObject tilePrefab;
     [SerializeField] private int tileScale;
+    [SerializeField] private GameObject tilePrefab;
     [SerializeField] private Sprite questionSprite;
-    [SerializeField] private Image executeButton;
-    [SerializeField] private Image cancelButton;
-    [Header("Player Settings")]
-    [SerializeField] private Sprite[] playerOneSprites;
+    [SerializeField] private Sprite bombSprite;
+    [Header("Color Settings")]
+    [SerializeField] private Color checkColor;
     [SerializeField] private Color playerOneColor;
-    [SerializeField] private Sprite[] playerTwoSprites;
     [SerializeField] private Color playerTwoColor;
 
-    public List<Tile> playerOneTiles = new List<Tile>();
-    public List<Tile> playerTwoTiles = new List<Tile>();
+    public List<Sprite> allGreenTypeSprites = new List<Sprite>();
+    public List<Sprite> allRedTypeSprites = new List<Sprite>();
+    public List<Sprite> availableSprites = new List<Sprite>();
 
     private Tile selectedTile;
+    private Tile checkTile;
+
+    private int playerSpriteCount;
 
     private bool isPlayerOneTurn = true;
     private void Awake()
@@ -37,11 +42,53 @@ public class BoardManager : MonoBehaviour
     }
     private void Start()
     {
+        SetRandomAvailableList();
         SetupBoard();
-        SetButtonsActivate(false);
+    }
+    private void SetRandomAvailableList()
+    {
+        //Board 25
+        var boardTileCount = height * width;
+        //Remain 24
+        var remainTileCount = boardTileCount - bombCount;
+        var copyGreenList = allGreenTypeSprites;
+        var copyRedList = allRedTypeSprites;
+        //PlayerSpriteCount = 12
+        playerSpriteCount = remainTileCount / playerCount;
+        for (int i = 0; i < spriteCount; i++)
+        {
+            var randomGreenIndex = Random.Range(0, allGreenTypeSprites.Count);
+            var randomRedIndex = Random.Range(0, allRedTypeSprites.Count);
+
+            //EachCount = 6
+            var eachCount = playerSpriteCount / spriteCount;
+            for (int j = 0; j < eachCount; j++)
+            {
+                availableSprites.Add(copyGreenList[randomGreenIndex]);
+                availableSprites.Add(copyRedList[randomRedIndex]);
+            }
+
+            //Oyunu reset attýðýmýz zaman tüm spritelar silinmesin diye copy olarak aldýk.
+            copyGreenList.RemoveAt(randomGreenIndex);
+            copyRedList.RemoveAt(randomRedIndex);
+        }
+
+        availableSprites.Add(bombSprite);
+    }
+    private Sprite GetRandomAvailableSprite()
+    {
+        var randomIndex = Random.Range(0, availableSprites.Count);
+        var randomSprite = availableSprites[randomIndex];
+        availableSprites.RemoveAt(randomIndex);
+        return randomSprite;
     }
     private void SetupBoard()
     {
+        var totalCount = height * width;
+        var remaintTileCount = totalCount - bombCount;
+        //For PlayerCount = 2
+        var playerOneCount = remaintTileCount / 2;
+        var playerTwoCount = remaintTileCount / 2;
         for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
@@ -53,73 +100,95 @@ public class BoardManager : MonoBehaviour
                 tile.transform.position = spawnPosition;
                 tile.transform.SetParent(this.transform);
                 tile.name = $"[{i},{j}]";
-                tile.GetComponent<Tile>().SetupTile(i, j, questionSprite);
+
+                var randomAvailableSprite = GetRandomAvailableSprite();
+                tile.GetComponent<Tile>().SetupTile(i, j, randomAvailableSprite, questionSprite);
             }
         }
     }
-
     public void SelectTile(Tile tile)
     {
-        if (!tile.IsClickable())
+        if (!tile.CanSelect())
             return;
 
         if(selectedTile == null)
         {
             //Select any tile on the board
             selectedTile = tile;
-            selectedTile.SetBackgroundColor(isPlayerOneTurn  ? playerOneColor : playerTwoColor);
-            SetButtonsActivate(true);
+            selectedTile.GetComponent<Tile>().SetBackgroundColor(checkColor);
+            selectedTile.GetComponent<TileAnimationController>().SelectTileAnimation();
+
+            if (selectedTile.GetActualSprite() == bombSprite)
+                Debug.Log("Find the bomb and refresh all board");
+            
         }
         else if(selectedTile == tile)
         {
-            //Deselect Tile and select new one
-            Debug.Log("Same Tile");
-            selectedTile.SetBackgroundColor(Color.white);
-            selectedTile = null;
-            SetButtonsActivate(false);
+            selectedTile.GetComponent<TileAnimationController>().WiggleTileAnimation();
+            Debug.Log("Message: Please select new tile on the board");
         }
         else
         {
-            //Use different moves in the board like swaping
-            Debug.Log("Use some different moves");
+            //Check other tile is same or not
+            checkTile = tile;
+            CheckTile(selectedTile, checkTile);
         }
     }
 
-    private void SetButtonsActivate(bool isActive)
+    private void CheckTile(Tile selectedTile, Tile checkTile)
     {
-        executeButton.gameObject.SetActive(isActive);
-        cancelButton.gameObject.SetActive(isActive);
-    }
-    public void Execute()
-    {
-        if(isPlayerOneTurn)
+        var selectedTileSprite = selectedTile.GetActualSprite();
+        var checkTileSprite = checkTile.GetActualSprite();
+        var openAnimationTime = 1.5f;
+        if(checkTileSprite == bombSprite)
         {
-            var randomIndex = Random.Range(0, playerOneSprites.Length);
-            var randomSprite  = playerOneSprites[randomIndex];
-            selectedTile.SetTileSprite(randomSprite);
-            playerOneTiles.Add(selectedTile);
+            Invoke(nameof(RefreshBoard), openAnimationTime);
+        }
+        else if(selectedTileSprite == checkTileSprite)
+        {
+            Invoke(nameof(HandleCorrectMatch), openAnimationTime);
         }
         else
         {
-            var randomIndex = Random.Range(0, playerTwoSprites.Length);
-            var randomSprite = playerTwoSprites[randomIndex];
-            selectedTile.SetTileSprite(randomSprite);
-            playerTwoTiles.Add(selectedTile);
+            Invoke(nameof(HandleMissMatch), openAnimationTime);
         }
 
-        SetButtonsActivate(false);
-        selectedTile.SetClickable(false);
+        checkTile.GetComponent<Tile>().SetBackgroundColor(checkColor);
+        checkTile.GetComponent<TileAnimationController>().SelectTileAnimation();
+    }
+    private void RefreshBoard()
+    {
+        Debug.Log("Refreshed the game");
+    }
+    private void HandleCorrectMatch()
+    {
+        Debug.Log("CONGRATZ.. Player can attack other one");
+        selectedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
+        checkTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
+
+        selectedTile.GetComponent<TileAnimationController>().MatchTileAnimation();
+        checkTile.GetComponent<TileAnimationController>().MatchTileAnimation();
         selectedTile = null;
+        checkTile = null;
+
         ChangePlayerTurn();
     }
+    private void HandleMissMatch()
+    {
+        Debug.Log("NOOOOO.. Player turn must change");
+        selectedTile.SetBackgroundColor(Color.white);
+        checkTile.SetBackgroundColor(Color.white);
+
+        selectedTile.GetComponent<TileAnimationController>().MissTileAnimation();
+        checkTile.GetComponent<TileAnimationController>().MissTileAnimation();
+        selectedTile = null;
+        checkTile = null;
+
+        ChangePlayerTurn();
+    }
+
     private void ChangePlayerTurn()
     {
         isPlayerOneTurn = !isPlayerOneTurn;
-    }
-    public void Cancel()
-    {
-        selectedTile.SetBackgroundColor(Color.white);
-        selectedTile = null;
-        SetButtonsActivate(false);
     }
 }
