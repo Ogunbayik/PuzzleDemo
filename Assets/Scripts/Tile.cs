@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 public class Tile : MonoBehaviour
 {
+    [Header("UI Settings")]
     [SerializeField] private Image hiddenImage;
     [SerializeField] private Image actualImage;
     [SerializeField] private Image tileBackgroundImage;
@@ -11,8 +12,6 @@ public class Tile : MonoBehaviour
     private Color tileColor;
     private int tileHeight;
     private int tileWidth;
-
-    private bool canSelect = true;
     public void SetupTile(int height, int width, Sprite selected, Sprite hiddenSprite)
     {
         //Board da tilelarý nötr olarak ayarlýyoruz
@@ -20,11 +19,6 @@ public class Tile : MonoBehaviour
         tileWidth = width;
         actualImage.sprite = selected;
         hiddenImage.sprite = hiddenSprite;
-    }
-    public void SetTileColor(Color color)
-    {
-        //Board daki tilelarýn rengini ayarlýyoruz
-        tileColor = color;
     }
     public void SetBackgroundColor(Color color)
     {
@@ -34,19 +28,10 @@ public class Tile : MonoBehaviour
     {
         actualImage.sprite = sprite;
     }
-    public void SetCanSelect(bool isSelect)
-    {
-        canSelect = isSelect;
-    }
-    public bool CanSelect()
-    {
-        return canSelect;
-    }
     public Sprite GetActualSprite()
     {
         return actualImage.sprite;
     }
-
     public void OnMouseDown()
     {
         BoardManager.Instance.SelectTile(this);

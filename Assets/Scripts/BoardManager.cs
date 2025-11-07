@@ -24,6 +24,8 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private Color checkColor;
     [SerializeField] private Color playerOneColor;
     [SerializeField] private Color playerTwoColor;
+    [Header("Particle Settings")]
+    [SerializeField] private GameObject explosionParticle;
 
     public List<Sprite> allGreenTypeSprites = new List<Sprite>();
     public List<Sprite> allRedTypeSprites = new List<Sprite>();
@@ -33,6 +35,8 @@ public class BoardManager : MonoBehaviour
     private Tile checkTile;
 
     private int playerSpriteCount;
+    private int selectCount;
+    private int maxSelectCount = 2;
 
     private bool isPlayerOneTurn = true;
     private void Awake()
@@ -108,23 +112,26 @@ public class BoardManager : MonoBehaviour
     }
     public void SelectTile(Tile tile)
     {
-        if (!tile.CanSelect())
+        if (selectCount >= maxSelectCount)
             return;
 
         if(selectedTile == null)
         {
             //Select any tile on the board
+
             selectedTile = tile;
             selectedTile.GetComponent<Tile>().SetBackgroundColor(checkColor);
-            selectedTile.GetComponent<TileAnimationController>().SelectTileAnimation();
+            selectedTile.GetComponent<TileAnimationController>().PlaySelectTileAnimation();
 
             if (selectedTile.GetActualSprite() == bombSprite)
-                Debug.Log("Find the bomb and refresh all board");
-            
+                BombEffectActivion(selectedTile.transform.position);
+
+            selectCount++;
         }
         else if(selectedTile == tile)
         {
-            selectedTile.GetComponent<TileAnimationController>().WiggleTileAnimation();
+            selectedTile.GetComponent<TileAnimationController>().PlayWiggleTileAnimation();
+            selectCount = 1;
             Debug.Log("Message: Please select new tile on the board");
         }
         else
@@ -132,6 +139,7 @@ public class BoardManager : MonoBehaviour
             //Check other tile is same or not
             checkTile = tile;
             CheckTile(selectedTile, checkTile);
+            selectCount++;
         }
     }
 
@@ -142,6 +150,7 @@ public class BoardManager : MonoBehaviour
         var openAnimationTime = 1.5f;
         if(checkTileSprite == bombSprite)
         {
+            BombEffectActivion(checkTile.transform.position);
             Invoke(nameof(RefreshBoard), openAnimationTime);
         }
         else if(selectedTileSprite == checkTileSprite)
@@ -154,11 +163,17 @@ public class BoardManager : MonoBehaviour
         }
 
         checkTile.GetComponent<Tile>().SetBackgroundColor(checkColor);
-        checkTile.GetComponent<TileAnimationController>().SelectTileAnimation();
+        checkTile.GetComponent<TileAnimationController>().PlaySelectTileAnimation();
     }
     private void RefreshBoard()
     {
         Debug.Log("Refreshed the game");
+    }
+    private void BombEffectActivion(Vector3 position)
+    {
+        var offsetZ = -2f;
+        var explosion = Instantiate(explosionParticle);
+        explosion.transform.position = position + new Vector3(0f, 0f, offsetZ);
     }
     private void HandleCorrectMatch()
     {
@@ -166,8 +181,8 @@ public class BoardManager : MonoBehaviour
         selectedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
         checkTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
 
-        selectedTile.GetComponent<TileAnimationController>().MatchTileAnimation();
-        checkTile.GetComponent<TileAnimationController>().MatchTileAnimation();
+        selectedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
+        checkTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
         selectedTile = null;
         checkTile = null;
 
@@ -179,8 +194,8 @@ public class BoardManager : MonoBehaviour
         selectedTile.SetBackgroundColor(Color.white);
         checkTile.SetBackgroundColor(Color.white);
 
-        selectedTile.GetComponent<TileAnimationController>().MissTileAnimation();
-        checkTile.GetComponent<TileAnimationController>().MissTileAnimation();
+        selectedTile.GetComponent<TileAnimationController>().PlayMissTileAnimation();
+        checkTile.GetComponent<TileAnimationController>().PlayMissTileAnimation();
         selectedTile = null;
         checkTile = null;
 

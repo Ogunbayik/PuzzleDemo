@@ -8,20 +8,26 @@ public class TileAnimationController : MonoBehaviour
         tileAnimator = GetComponent<Animator>();
     }
 
-    public void SelectTileAnimation()
+    public void PlaySelectTileAnimation()
     {
-        tileAnimator.SetTrigger("isSelect");
+        tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_SELECT);
     }
-    public void MatchTileAnimation()
+    public void PlayMatchTileAnimation()
     {
-        tileAnimator.SetTrigger("isMatch");
+        tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_MATCH);
     }
-    public void MissTileAnimation()
+    public void PlayMissTileAnimation()
     {
-        tileAnimator.SetTrigger("isMiss");
+        tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_MISS);
     }
-    public void WiggleTileAnimation()
+    public void PlayWiggleTileAnimation()
     {
-        tileAnimator.SetTrigger("isWiggle");
+        tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_WIGGLE);
+    }
+    
+    public void PlayRandomFallAnimation()
+    {
+        var totalFallAnimation = 4;
+        var randomIndex = Random.Range(0, totalFallAnimation);
     }
 }

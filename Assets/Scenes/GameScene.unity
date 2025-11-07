@@ -870,6 +870,7 @@ MonoBehaviour:
   checkColor: {r: 0.54905653, g: 1, b: 0.9990482, a: 1}
   playerOneColor: {r: 0.5562066, g: 0.9924528, b: 0.40259874, a: 1}
   playerTwoColor: {r: 1, g: 0.36037737, b: 0.36037737, a: 1}
+  explosionParticle: {fileID: 591763762907434151, guid: edd0f1caf6332414f96122a5a009eaa2, type: 3}
   allGreenTypeSprites:
   - {fileID: 21300000, guid: c24018e711bb1994682c62851a5f30a6, type: 3}
   - {fileID: 21300000, guid: d951bd57a8058ac4d93d06f384ab7785, type: 3}
