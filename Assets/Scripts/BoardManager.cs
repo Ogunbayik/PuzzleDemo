@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -21,7 +22,7 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private Sprite questionSprite;
     [SerializeField] private Sprite bombSprite;
     [Header("Color Settings")]
-    [SerializeField] private Color checkColor;
+    [SerializeField] private Color selectedColor;
     [SerializeField] private Color playerOneColor;
     [SerializeField] private Color playerTwoColor;
     [Header("Particle Settings")]
@@ -32,7 +33,7 @@ public class BoardManager : MonoBehaviour
     public List<Sprite> availableSprites = new List<Sprite>();
 
     private Tile selectedTile;
-    private Tile checkTile;
+    private Tile checkedTile;
 
     private int playerSpriteCount;
     private int selectCount;
@@ -118,15 +119,16 @@ public class BoardManager : MonoBehaviour
         if(selectedTile == null)
         {
             //Select any tile on the board
-
-            selectedTile = tile;
-            selectedTile.GetComponent<Tile>().SetBackgroundColor(checkColor);
-            selectedTile.GetComponent<TileAnimationController>().PlaySelectTileAnimation();
-
-            if (selectedTile.GetActualSprite() == bombSprite)
-                BombEffectActivion(selectedTile.transform.position);
-
             selectCount++;
+            selectedTile = tile;
+            selectedTile.GetComponent<Tile>().SetBackgroundColor(selectedColor);
+            selectedTile.GetComponent<TileAnimationController>().PlayOpenTileAnimation();
+
+            if(selectedTile.GetActualSprite() == bombSprite)
+            {
+                StartCoroutine(RefreshBoardSequence(selectedTile, null));
+            }
+
         }
         else if(selectedTile == tile)
         {
@@ -137,37 +139,83 @@ public class BoardManager : MonoBehaviour
         else
         {
             //Check other tile is same or not
-            checkTile = tile;
-            CheckTile(selectedTile, checkTile);
+            if (checkedTile != null)
+                return;
+
+            checkedTile = tile;
             selectCount++;
+            checkedTile.SetBackgroundColor(selectedColor);
+            checkedTile.GetComponent<TileAnimationController>().PlayOpenTileAnimation();
+            CheckedForMatch(selectedTile, checkedTile);
         }
     }
-
-    private void CheckTile(Tile selectedTile, Tile checkTile)
+    private void CheckedForMatch(Tile selectedTile, Tile checkedTile)
     {
-        var selectedTileSprite = selectedTile.GetActualSprite();
-        var checkTileSprite = checkTile.GetActualSprite();
-        var openAnimationTime = 1.5f;
-        if(checkTileSprite == bombSprite)
+        if (checkedTile != null)
         {
-            BombEffectActivion(checkTile.transform.position);
-            Invoke(nameof(RefreshBoard), openAnimationTime);
+            var selectedTileSprite = selectedTile.GetActualSprite();
+            var checkTileSprite = checkedTile.GetActualSprite();
+            if (checkTileSprite == bombSprite)
+            {
+                StartCoroutine(RefreshBoardSequence(selectedTile, checkedTile));
+            }
+            else if (selectedTileSprite == checkTileSprite)
+            {
+                StartCoroutine(HandleCorrectMatchSequence(selectedTile, checkedTile));
+            }
+            else
+            {
+                StartCoroutine(HandleMissMatchSequence(selectedTile, checkedTile));
+            }
         }
-        else if(selectedTileSprite == checkTileSprite)
-        {
-            Invoke(nameof(HandleCorrectMatch), openAnimationTime);
-        }
+    }
+    private IEnumerator RefreshBoardSequence(Tile selectedTile, Tile checkedTile)
+    {
+        yield return new WaitForSeconds(Consts.TileAnimationTime.OPEN_ANIMATION_TIME);
+        if (checkedTile != null)
+            BombEffectActivion(checkedTile.transform.position);
         else
-        {
-            Invoke(nameof(HandleMissMatch), openAnimationTime);
-        }
-
-        checkTile.GetComponent<Tile>().SetBackgroundColor(checkColor);
-        checkTile.GetComponent<TileAnimationController>().PlaySelectTileAnimation();
+            BombEffectActivion(selectedTile.transform.position);
+        yield return new WaitForSeconds(2f);
+        RefreshBoard();
+    }
+    private IEnumerator HandleCorrectMatchSequence(Tile selectedTile, Tile checkedTile)
+    {
+        Debug.Log("CONGRATZ.. Player can attack other one"); 
+        yield return new WaitForSeconds(Consts.TileAnimationTime.OPEN_ANIMATION_TIME);
+        //selectedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
+        //checkedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
+        yield return new WaitForSeconds(0.5f);
+        Debug.Log("Write Correct or Incorret");
+        yield return new WaitForSeconds(0.5f);
+        selectedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
+        checkedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
+        yield return new WaitForSeconds(1f);
+        ChangePlayerTurn();
+    }
+    private IEnumerator HandleMissMatchSequence(Tile selectedTile, Tile checkedTile)
+    {
+        Debug.Log("NOOOOO.. Player turn must change");
+        yield return new WaitForSeconds(Consts.TileAnimationTime.OPEN_ANIMATION_TIME);
+        selectedTile.GetComponent<TileAnimationController>().PlayMissTileAnimation();
+        checkedTile.GetComponent<TileAnimationController>().PlayMissTileAnimation();
+        yield return new WaitForSeconds(0.5f);
+        selectedTile.SetBackgroundColor(Color.white);
+        checkedTile.SetBackgroundColor(Color.white);
+        yield return new WaitForSeconds(1f);
+        ChangePlayerTurn();
     }
     private void RefreshBoard()
     {
-        Debug.Log("Refreshed the game");
+        List<GameObject> allTiles = new List<GameObject>();
+
+        for (int i = 0; i < transform.childCount; i++)
+            allTiles.Add(transform.GetChild(i).gameObject);
+
+        foreach (var tile in allTiles)
+        {
+            tile.GetComponent<TileAnimationController>().PlayRandomFallAnimation();
+        }
     }
     private void BombEffectActivion(Vector3 position)
     {
@@ -175,35 +223,11 @@ public class BoardManager : MonoBehaviour
         var explosion = Instantiate(explosionParticle);
         explosion.transform.position = position + new Vector3(0f, 0f, offsetZ);
     }
-    private void HandleCorrectMatch()
-    {
-        Debug.Log("CONGRATZ.. Player can attack other one");
-        selectedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
-        checkTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
-
-        selectedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
-        checkTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
-        selectedTile = null;
-        checkTile = null;
-
-        ChangePlayerTurn();
-    }
-    private void HandleMissMatch()
-    {
-        Debug.Log("NOOOOO.. Player turn must change");
-        selectedTile.SetBackgroundColor(Color.white);
-        checkTile.SetBackgroundColor(Color.white);
-
-        selectedTile.GetComponent<TileAnimationController>().PlayMissTileAnimation();
-        checkTile.GetComponent<TileAnimationController>().PlayMissTileAnimation();
-        selectedTile = null;
-        checkTile = null;
-
-        ChangePlayerTurn();
-    }
-
     private void ChangePlayerTurn()
     {
+        selectCount = 0;
+        selectedTile = null;
+        checkedTile = null;
         isPlayerOneTurn = !isPlayerOneTurn;
     }
 }

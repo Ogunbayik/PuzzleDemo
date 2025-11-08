@@ -8,7 +8,7 @@ public class TileAnimationController : MonoBehaviour
         tileAnimator = GetComponent<Animator>();
     }
 
-    public void PlaySelectTileAnimation()
+    public void PlayOpenTileAnimation()
     {
         tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_SELECT);
     }
@@ -24,10 +24,18 @@ public class TileAnimationController : MonoBehaviour
     {
         tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_WIGGLE);
     }
-    
     public void PlayRandomFallAnimation()
     {
-        var totalFallAnimation = 4;
+        var totalFallAnimation = 2;
         var randomIndex = Random.Range(0, totalFallAnimation);
+        var randomAnimationSpeed = Random.Range(Consts.TileAnimationTime.MINIMUM_FALL_SPEED, Consts.TileAnimationTime.MAXIMUM_FALL_SPEED);
+        
+        tileAnimator.speed = randomAnimationSpeed;
+
+        if (randomIndex == 0)
+            tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_FALLLEFT);
+        else
+            tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_FALLRIGHT);
+
     }
 }
