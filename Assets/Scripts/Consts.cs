@@ -16,6 +16,10 @@ public class Consts
         public const float OPEN_ANIMATION_TIME = 1.1f;
         public const float ANIMATION_DELAY_SHORT = 0.5f;
     }
+    public struct GameSetup
+    {
+        public const int PLAYER_COUNT_SPECIAL_SETUP = 3;
+    }
 
 
 }
