@@ -1,10 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Tilemaps;
-using UnityEngine.UI;
 
 public class BoardManager : MonoBehaviour
 {
@@ -38,8 +34,6 @@ public class BoardManager : MonoBehaviour
     private int playerSpriteCount;
     private int selectCount;
     private int maxSelectCount = 2;
-
-    private bool isPlayerOneTurn = true;
     private void Awake()
     {
         Instance = this;
@@ -191,7 +185,9 @@ public class BoardManager : MonoBehaviour
         selectedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
         checkedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
         yield return new WaitForSeconds(1f);
-        ChangePlayerTurn();
+        //Burada Player için seçim yapýlacak diðer playerlar görünecek.
+        int targetCount = GameManager.Instance.playerCount - 1;
+        GameUI.Instance.SetupPanel(targetCount);
     }
     private IEnumerator HandleMissMatchSequence(Tile selectedTile, Tile checkedTile)
     {
@@ -203,7 +199,6 @@ public class BoardManager : MonoBehaviour
         selectedTile.SetBackgroundColor(Color.white);
         checkedTile.SetBackgroundColor(Color.white);
         yield return new WaitForSeconds(1f);
-        ChangePlayerTurn();
     }
     private void RefreshBoard()
     {
@@ -222,12 +217,5 @@ public class BoardManager : MonoBehaviour
         var offsetZ = -2f;
         var explosion = Instantiate(explosionParticle);
         explosion.transform.position = position + new Vector3(0f, 0f, offsetZ);
-    }
-    private void ChangePlayerTurn()
-    {
-        selectCount = 0;
-        selectedTile = null;
-        checkedTile = null;
-        isPlayerOneTurn = !isPlayerOneTurn;
     }
 }

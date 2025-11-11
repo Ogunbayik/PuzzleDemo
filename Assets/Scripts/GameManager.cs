@@ -5,12 +5,21 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    private List<PlayerIdentity> allPlayers = new List<PlayerIdentity>();
     [Header("Game Settings")]
-    [SerializeField] private int playerCount;
-    [SerializeField] private GameObject playerPrefab;
-    [SerializeField] private Transform[] spawnPosition;
+    public int playerCount;
+    public GameObject playerPrefab;
+    public Transform[] spawnPosition;
+    [Header("Color Settings")]
+    public Color[] playerColors;
+    public Color[] frameColors;
+    public string[] playerNames;
+    public Sprite[] playerSprites;
 
     public List<Vector3> spawnPositionList = new List<Vector3>();
+
+    private int currentPlayerIndex = 0;
+
     private void Awake()
     {
         #region Singleton
@@ -28,18 +37,14 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        GameSetup();
-    }
-    private void GameSetup()
-    {
         SetSpawnPosition();
+        SetupPlayer();
     }
-
     private void SetSpawnPosition()
     {
         if (playerCount == Consts.GameSetup.PLAYER_COUNT_SPECIAL_SETUP)
         {
-            var lastSpawnPositionIndex = 3;
+            var lastSpawnPositionIndex = spawnPosition.Length - 1;
             for (int i = 0; i < lastSpawnPositionIndex - 1; i++)
                 spawnPositionList.Add(spawnPosition[i].transform.position);
 
@@ -50,15 +55,42 @@ public class GameManager : MonoBehaviour
         else
         {
             for (int i = 0; i < playerCount; i++)
-            {
                 spawnPositionList.Add(spawnPosition[i].transform.position);
-            }
         }
-
+    }
+    private void SetupPlayer()
+    {
         for (int i = 0; i < playerCount; i++)
         {
             var player = Instantiate(playerPrefab);
             player.transform.position = spawnPositionList[i];
+
+            var playerID = i + 1;
+            player.GetComponent<PlayerIdentity>().InitializePlayerID(playerID, playerNames[i]);
+            player.GetComponent<PlayerVisual>().InitializeVisual(playerColors[i], frameColors[i], playerSprites[i]);
+            player.GetComponent<PlayerAttack>().InitializeAttackPosition();
+
+            var offsetUpY = new Vector3(0f, 3.5f, 0f);
+            var offsetDownY = new Vector3(0f, -1.2f, 0f);
+
+            if (i < Consts.GameSetup.PLAYER_COUNT_SPECIAL_SETUP - 1)
+                player.GetComponent<PlayerHealth>().InitializeHealthBar(offsetUpY);
+            else
+                player.GetComponent<PlayerHealth>().InitializeHealthBar(offsetDownY);
+
+            allPlayers.Add(player.GetComponent<PlayerIdentity>());
         }
+    }
+    public List<PlayerIdentity> GetTargetList()
+    {
+        List<PlayerIdentity> targetList = new List<PlayerIdentity>();
+
+        for (int i = 0; i < allPlayers.Count; i++)
+        {
+            if (i != currentPlayerIndex)
+                targetList.Add(allPlayers[i]);
+        }
+
+        return targetList;
     }
 }
