@@ -10,5 +10,6 @@ public class PlayerIdentity : MonoBehaviour
     {
         playerID = id;
         playerName = name;
+        gameObject.name = playerName;
     }
 }

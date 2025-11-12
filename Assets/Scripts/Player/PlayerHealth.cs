@@ -9,6 +9,9 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private int maxHealth;
 
     private int currentHealth;
+
+    public int CurrentHealth => currentHealth;
+    public int MaxHealth => maxHealth;
     private void Awake()
     {
         healthUI = GetComponentInChildren<HealthUI>();

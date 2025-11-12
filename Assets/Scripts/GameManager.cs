@@ -5,6 +5,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    private PlayerIdentity targetPlayer;
+
     private List<PlayerIdentity> allPlayers = new List<PlayerIdentity>();
     [Header("Game Settings")]
     public int playerCount;
@@ -17,6 +19,8 @@ public class GameManager : MonoBehaviour
     public Sprite[] playerSprites;
 
     public List<Vector3> spawnPositionList = new List<Vector3>();
+
+    public PlayerIdentity TargetPlayer => targetPlayer;
 
     private int currentPlayerIndex = 0;
 
@@ -81,6 +85,21 @@ public class GameManager : MonoBehaviour
             allPlayers.Add(player.GetComponent<PlayerIdentity>());
         }
     }
+    public void SetTargetPlayer(PlayerIdentity targetIdentity)
+    {
+        targetPlayer = targetIdentity;
+    }
+    public void ExecuteAttack()
+    {
+        var currentPlayer = allPlayers[currentPlayerIndex];
+        currentPlayer.GetComponent<PlayerAttack>().StartAttacking();
+        GameUI.Instance.SelectPanelDeactivate();
+        GameUI.Instance.ResetPropertyList();
+    }
+    public void ChangePlayerTurn()
+    {
+        currentPlayerIndex++;
+    }
     public List<PlayerIdentity> GetTargetList()
     {
         List<PlayerIdentity> targetList = new List<PlayerIdentity>();
@@ -92,5 +111,9 @@ public class GameManager : MonoBehaviour
         }
 
         return targetList;
+    }
+    public PlayerIdentity GetCurrentPlayer()
+    {
+        return allPlayers[currentPlayerIndex];
     }
 }

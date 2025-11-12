@@ -218,4 +218,10 @@ public class BoardManager : MonoBehaviour
         var explosion = Instantiate(explosionParticle);
         explosion.transform.position = position + new Vector3(0f, 0f, offsetZ);
     }
+    public void ResetSelectCount()
+    {
+        selectCount = 0;
+        selectedTile = null;
+        checkedTile = null;
+    }
 }
