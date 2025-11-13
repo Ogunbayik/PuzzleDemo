@@ -16,15 +16,31 @@ public class PlayerAttack : MonoBehaviour
     }
     public void InitializeAttackPosition()
     {
-        var index = playerIdentity.PlayerID % 2;
-        var offsetX = 1;
-        var offsetY = 1;
+        //Top side player count is always = 2
+        int maxPlayerInTopZone = 2;
+        int playerSideIndex = playerIdentity.PlayerID % 2;
+        var rightSideIndex = 0;
+
+        var horizontalOffset = 1f;
+        var downZoneOffsetY = 2f;
         var desiredPosition = Vector3.zero;
 
-        if (index == 0)
-            desiredPosition.Set(-offsetX, offsetY, 0f);
+        if (playerIdentity.PlayerID < maxPlayerInTopZone)
+        {
+            //Players are in top zone
+            if (playerSideIndex == rightSideIndex)
+                desiredPosition.Set(horizontalOffset, 0f, 0f);
+            else
+                desiredPosition.Set(-horizontalOffset, 0f, 0f);
+        }
         else
-            desiredPosition.Set(offsetX, offsetY, 0f);
+        {
+            //Players are in down zone
+            if (playerSideIndex == rightSideIndex)
+                desiredPosition.Set(horizontalOffset, downZoneOffsetY, 0f);
+            else
+                desiredPosition.Set(-horizontalOffset, downZoneOffsetY, 0f);
+        }
 
         attackPosition.transform.position += desiredPosition;
     }
@@ -37,7 +53,7 @@ public class PlayerAttack : MonoBehaviour
         Debug.Log(currentPlayer.PlayerName + " use attacking animation");
         yield return new WaitForSeconds(1f);
         var bullet = Instantiate(bulletPrefab);
-        var bulletColor = playerVisual.PlayerColor;
+        bullet.name = currentPlayer.PlayerName + " bullet";
         bullet.GetComponent<Bullet>().InitializeBullet(targetPlayer.transform.position, attackPosition.position, playerVisual.PlayerColor);
         yield return new WaitForSeconds(1f);
         Debug.Log("Happy");

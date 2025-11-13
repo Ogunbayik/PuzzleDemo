@@ -7,7 +7,7 @@ public class GameManager : MonoBehaviour
 
     private PlayerIdentity targetPlayer;
 
-    private List<PlayerIdentity> allPlayers = new List<PlayerIdentity>();
+    private List<PlayerIdentity> allPlayersList = new List<PlayerIdentity>();
     [Header("Game Settings")]
     public int playerCount;
     public GameObject playerPrefab;
@@ -67,22 +67,25 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             var player = Instantiate(playerPrefab);
+            var playerIdentity = player.GetComponent<PlayerIdentity>();
+            var playerVisual = player.GetComponent<PlayerVisual>();
+            var playerAttack = player.GetComponent<PlayerAttack>();
+            var playerHealth = player.GetComponent<PlayerHealth>();
             player.transform.position = spawnPositionList[i];
 
-            var playerID = i + 1;
-            player.GetComponent<PlayerIdentity>().InitializePlayerID(playerID, playerNames[i]);
-            player.GetComponent<PlayerVisual>().InitializeVisual(playerColors[i], frameColors[i], playerSprites[i]);
-            player.GetComponent<PlayerAttack>().InitializeAttackPosition();
+            playerIdentity.InitializePlayerID(i, playerNames[i]);
+            playerVisual.InitializeVisual(playerColors[i], frameColors[i], playerSprites[i]);
+            playerAttack.InitializeAttackPosition();
 
             var offsetUpY = new Vector3(0f, 3.5f, 0f);
             var offsetDownY = new Vector3(0f, -1.2f, 0f);
 
             if (i < Consts.GameSetup.PLAYER_COUNT_SPECIAL_SETUP - 1)
-                player.GetComponent<PlayerHealth>().InitializeHealthBar(offsetUpY);
+                playerHealth.InitializeHealthBar(offsetUpY);
             else
-                player.GetComponent<PlayerHealth>().InitializeHealthBar(offsetDownY);
+                playerHealth.InitializeHealthBar(offsetDownY);
 
-            allPlayers.Add(player.GetComponent<PlayerIdentity>());
+            allPlayersList.Add(playerIdentity);
         }
     }
     public void SetTargetPlayer(PlayerIdentity targetIdentity)
@@ -91,29 +94,38 @@ public class GameManager : MonoBehaviour
     }
     public void ExecuteAttack()
     {
-        var currentPlayer = allPlayers[currentPlayerIndex];
+        //When I click select button in TargetPanel, Execute attacking
+        var currentPlayer = allPlayersList[currentPlayerIndex];
         currentPlayer.GetComponent<PlayerAttack>().StartAttacking();
         GameUI.Instance.SelectPanelDeactivate();
         GameUI.Instance.ResetPropertyList();
     }
     public void ChangePlayerTurn()
     {
-        currentPlayerIndex++;
+        if (currentPlayerIndex >= allPlayersList.Count - 1)
+            currentPlayerIndex = 0;
+        else
+            currentPlayerIndex++;
+    }
+    public void RemoveDeadPlayerOnList(PlayerIdentity deadPlayer)
+    {
+        if (allPlayersList.Contains(deadPlayer))
+            allPlayersList.Remove(deadPlayer);
     }
     public List<PlayerIdentity> GetTargetList()
     {
         List<PlayerIdentity> targetList = new List<PlayerIdentity>();
 
-        for (int i = 0; i < allPlayers.Count; i++)
+        for (int i = 0; i < allPlayersList.Count; i++)
         {
             if (i != currentPlayerIndex)
-                targetList.Add(allPlayers[i]);
+                targetList.Add(allPlayersList[i]);
         }
 
         return targetList;
     }
     public PlayerIdentity GetCurrentPlayer()
     {
-        return allPlayers[currentPlayerIndex];
+        return allPlayersList[currentPlayerIndex];
     }
 }

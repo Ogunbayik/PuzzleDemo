@@ -1,7 +1,10 @@
+using System;
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
 {
+    public Action OnDead;
+
     private PlayerIdentity playerIdentity;
     private PlayerVisual playerVisual;
     private HealthUI healthUI;
@@ -28,9 +31,17 @@ public class PlayerHealth : MonoBehaviour
     }
     public void TakeDamage(int damage)
     {
-        if (currentHealth > damage)
-            currentHealth -= damage;
-        else
+        if(currentHealth <= damage)
+        {
+            Debug.Log(playerIdentity.PlayerName + " is dead.");
             currentHealth = 0;
+            healthUI.UpdateHealthBar(currentHealth, maxHealth);
+            OnDead?.Invoke();
+
+            return;
+        }
+
+        currentHealth -= damage;
     }
+
 }

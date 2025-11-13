@@ -199,6 +199,8 @@ public class BoardManager : MonoBehaviour
         selectedTile.SetBackgroundColor(Color.white);
         checkedTile.SetBackgroundColor(Color.white);
         yield return new WaitForSeconds(1f);
+        ResetSelectCount();
+        GameManager.Instance.ChangePlayerTurn();
     }
     private void RefreshBoard()
     {

@@ -11,6 +11,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private GameObject targetPropertyUIPrefab;
 
     private List<TargetPropertyUI> propertyUIList = new List<TargetPropertyUI>();
+    private List<PlayerIdentity> targetList = new List<PlayerIdentity>();
 
     private TargetPropertyUI selectedPropertyUI;
     private void Awake()
@@ -36,7 +37,7 @@ public class GameUI : MonoBehaviour
 
         for (int i = 0; i < targetCount; i++)
         {
-            var targetList = GameManager.Instance.GetTargetList();
+            targetList = GameManager.Instance.GetTargetList();
             var targetVisual = targetList[i].GetComponent<PlayerVisual>();
             var targetIdentity = targetList[i].GetComponent<PlayerIdentity>();
             var propertyUI = Instantiate(targetPropertyUIPrefab, targetImagePanel.transform);

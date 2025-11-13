@@ -23,4 +23,8 @@ public class Bullet : MonoBehaviour
         transform.position = spawnPosition;
         meshRenderer.material.color = color;
     }
+    public void DestroyPrefab()
+    {
+        Destroy(gameObject);
+    }
 }
