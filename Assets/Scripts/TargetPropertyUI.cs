@@ -8,7 +8,6 @@ public class TargetPropertyUI : MonoBehaviour
     [SerializeField] private Image targetImage;
     [SerializeField] private Image backgroundImage;
     [SerializeField] private TextMeshProUGUI targetText;
-
     [SerializeField] private Color selectedColor;
 
     private PlayerIdentity target;

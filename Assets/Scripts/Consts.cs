@@ -20,6 +20,17 @@ public class Consts
     {
         public const int PLAYER_COUNT_SPECIAL_SETUP = 3;
     }
+    public struct PlayerMaterial
+    {
+        public const string BODY_MAIN = "Body";
+        public const string BODY_STRIPE = "Body_2";
+    }
+    public struct PlayerAnimationParameter
+    {
+        public const string DEAD_PARAMETER = "OnDead";
+        public const string ATTACK_PARAMETER = "OnAttack";
+        public const string HIT_PARAMETER = "OnHit";
+    }
 
 
 }

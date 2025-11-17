@@ -11,7 +11,6 @@ public class GameUI : MonoBehaviour
     [SerializeField] private GameObject targetPropertyUIPrefab;
 
     private List<TargetPropertyUI> propertyUIList = new List<TargetPropertyUI>();
-    private List<PlayerIdentity> targetList = new List<PlayerIdentity>();
 
     private TargetPropertyUI selectedPropertyUI;
     private void Awake()
@@ -37,11 +36,13 @@ public class GameUI : MonoBehaviour
 
         for (int i = 0; i < targetCount; i++)
         {
-            targetList = GameManager.Instance.GetTargetList();
-            var targetVisual = targetList[i].GetComponent<PlayerVisual>();
-            var targetIdentity = targetList[i].GetComponent<PlayerIdentity>();
             var propertyUI = Instantiate(targetPropertyUIPrefab, targetImagePanel.transform);
             propertyUIList.Add(propertyUI.GetComponent<TargetPropertyUI>());
+
+            var targets = TurnManager.Instance.GetTargetList();
+            Debug.Log(targets.Count);
+            var targetVisual = targets[i].GetComponent<PlayerVisual>();
+            var targetIdentity = targets[i].GetComponent<PlayerIdentity>();
 
             var targetFrameColor = targetVisual.FrameColor;
             targetFrameColor.a = 0.4f;
@@ -56,7 +57,7 @@ public class GameUI : MonoBehaviour
         selectedPropertyUI = property;
         selectedPropertyUI.GetComponent<TargetPropertyUI>().SetBackgroundColor(selectedPropertyUI.SelectedColor);
 
-        GameManager.Instance.SetTargetPlayer(selectedPropertyUI.Target);
+        TurnManager.Instance.SetTargetPlayer(selectedPropertyUI.Target);
     }
     public void ResetPropertyList()
     {

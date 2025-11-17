@@ -3,6 +3,8 @@ using UnityEngine.UI;
 
 public class HealthUI : MonoBehaviour
 {
+    private PlayerTrigger playerTrigger;
+
     private const float HEALTH_FILL_LERP_SPEED = 3f;
 
     [Header("UI Settings")]
@@ -11,6 +13,8 @@ public class HealthUI : MonoBehaviour
     [SerializeField] private Image imageFrame;
     private void Awake()
     {
+        playerTrigger = GetComponent<PlayerTrigger>();
+
         imageFill.fillAmount = 1;
         remainFill.fillAmount = 1;
     }

@@ -20,6 +20,16 @@ public class PlayerVisual : MonoBehaviour
         playerColor = playerCol;
         frameColor = frameCol;
         playerSprite = sprite;
-        meshRenderer.material.color = playerColor;
+
+        foreach (var material in meshRenderer.materials)
+        {
+            string cleanMatName = material.name.Replace(" (Instance)", "");
+            Debug.Log(cleanMatName);
+
+            if (cleanMatName == Consts.PlayerMaterial.BODY_MAIN)
+                material.color = playerColor;
+            else if (cleanMatName == Consts.PlayerMaterial.BODY_STRIPE)
+                material.color = frameColor;
+        }
     }
 }

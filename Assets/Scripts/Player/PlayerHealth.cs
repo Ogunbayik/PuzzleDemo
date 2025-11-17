@@ -3,8 +3,10 @@ using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
 {
-    public Action OnDead;
+    public event Action OnDead;
+    public event Action OnHit;
 
+    private PlayerTrigger playerTrigger;
     private PlayerIdentity playerIdentity;
     private PlayerVisual playerVisual;
     private HealthUI healthUI;
@@ -18,6 +20,7 @@ public class PlayerHealth : MonoBehaviour
     private void Awake()
     {
         healthUI = GetComponentInChildren<HealthUI>();
+        playerTrigger = GetComponent<PlayerTrigger>();
         playerIdentity = GetComponent<PlayerIdentity>();
         playerVisual = GetComponent<PlayerVisual>();
     }
@@ -42,6 +45,10 @@ public class PlayerHealth : MonoBehaviour
         }
 
         currentHealth -= damage;
+        OnHit?.Invoke();
     }
-
+    public bool IsDead()
+    {
+        return currentHealth <= 0;
+    }
 }

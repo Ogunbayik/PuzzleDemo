@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,6 +6,10 @@ using UnityEngine;
 public class BoardManager : MonoBehaviour
 {
     public static BoardManager Instance;
+
+    public event Action OnMatch;
+    public event Action OnMiss;
+    public event Action OnRefreshBoard;
 
     [Header("Game Settings")]
     [SerializeField] private int playerCount;
@@ -56,8 +61,8 @@ public class BoardManager : MonoBehaviour
         playerSpriteCount = remainTileCount / playerCount;
         for (int i = 0; i < spriteCount; i++)
         {
-            var randomGreenIndex = Random.Range(0, allGreenTypeSprites.Count);
-            var randomRedIndex = Random.Range(0, allRedTypeSprites.Count);
+            var randomGreenIndex = UnityEngine.Random.Range(0, allGreenTypeSprites.Count);
+            var randomRedIndex = UnityEngine.Random.Range(0, allRedTypeSprites.Count);
 
             //EachCount = 6
             var eachCount = playerSpriteCount / spriteCount;
@@ -76,7 +81,7 @@ public class BoardManager : MonoBehaviour
     }
     private Sprite GetRandomAvailableSprite()
     {
-        var randomIndex = Random.Range(0, availableSprites.Count);
+        var randomIndex = UnityEngine.Random.Range(0, availableSprites.Count);
         var randomSprite = availableSprites[randomIndex];
         availableSprites.RemoveAt(randomIndex);
         return randomSprite;
@@ -152,14 +157,17 @@ public class BoardManager : MonoBehaviour
             if (checkTileSprite == bombSprite)
             {
                 StartCoroutine(RefreshBoardSequence(selectedTile, checkedTile));
+                OnRefreshBoard?.Invoke();
             }
             else if (selectedTileSprite == checkTileSprite)
             {
                 StartCoroutine(HandleCorrectMatchSequence(selectedTile, checkedTile));
+                OnMatch?.Invoke();
             }
             else
             {
                 StartCoroutine(HandleMissMatchSequence(selectedTile, checkedTile));
+                OnMiss?.Invoke();
             }
         }
     }
@@ -175,7 +183,8 @@ public class BoardManager : MonoBehaviour
     }
     private IEnumerator HandleCorrectMatchSequence(Tile selectedTile, Tile checkedTile)
     {
-        Debug.Log("CONGRATZ.. Player can attack other one"); 
+        TurnManager.Instance.SetTargetList();
+        Debug.Log("CONGRATZ.. Player can attack other one");
         yield return new WaitForSeconds(Consts.TileAnimationTime.OPEN_ANIMATION_TIME);
         //selectedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
         //checkedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
@@ -186,7 +195,7 @@ public class BoardManager : MonoBehaviour
         checkedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
         yield return new WaitForSeconds(1f);
         //Burada Player için seçim yapýlacak diðer playerlar görünecek.
-        int targetCount = GameManager.Instance.playerCount - 1;
+        int targetCount = TurnManager.Instance.GetTargetList().Count;
         GameUI.Instance.SetupPanel(targetCount);
     }
     private IEnumerator HandleMissMatchSequence(Tile selectedTile, Tile checkedTile)
@@ -200,7 +209,7 @@ public class BoardManager : MonoBehaviour
         checkedTile.SetBackgroundColor(Color.white);
         yield return new WaitForSeconds(1f);
         ResetSelectCount();
-        GameManager.Instance.ChangePlayerTurn();
+        TurnManager.Instance.AdvanceTurn();
     }
     private void RefreshBoard()
     {

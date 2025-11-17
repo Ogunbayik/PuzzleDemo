@@ -1,39 +1,41 @@
-using System;
 using System.Collections;
 using UnityEngine;
 
 public class PlayerTrigger : MonoBehaviour
 {
-    private PlayerVisual playerVisual;
+    private PlayerIdentity playerIdentity;
     private PlayerHealth playerHealth;
-    private PlayerAttack playerAttack;
     private HealthUI healthUI;
     private void Awake()
     {
+        playerIdentity = GetComponent<PlayerIdentity>();
         playerHealth = GetComponent<PlayerHealth>();
         healthUI = GetComponentInChildren<HealthUI>();
     }
     private void OnTriggerEnter(Collider other)
     {
         var bullet = other.gameObject.GetComponent<Bullet>();
+        if (bullet.BulletID == playerIdentity.PlayerID)
+            return;
 
         if (bullet != null)
-            StartCoroutine(BulletTriggerSequence(bullet));
+            StartBulletTriggerSequnce(bullet);
     }
-
     private IEnumerator BulletTriggerSequence(Bullet bullet)
     {
-        Debug.Log("Play playerhit animation");
-        playerHealth.TakeDamage(bullet.BulletDamage);
+        int damageAmount = bullet.BulletDamage;
+        playerHealth.TakeDamage(damageAmount);
         bullet.DestroyPrefab();
+        //Bullet için patlama efekti ekle
         yield return new WaitForSeconds(1f);
         healthUI.UpdateHealthBar(playerHealth.CurrentHealth, playerHealth.MaxHealth);
-        Debug.Log("Set target player healthUI with effect");
-        yield return new WaitForSeconds(1f);
-        Debug.Log("If target player is dead, activate player fall animation");
-        Debug.Log("Use timeline to show player's fall");
         yield return new WaitForSeconds(2f);
         BoardManager.Instance.ResetSelectCount();
         GameManager.Instance.ChangePlayerTurn();
+    }
+
+    private void StartBulletTriggerSequnce(Bullet bullet)
+    {
+        StartCoroutine(BulletTriggerSequence(bullet));
     }
 }

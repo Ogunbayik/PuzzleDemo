@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
+    public event Action OnStartAttack;
+
     private PlayerVisual playerVisual;
     private PlayerIdentity playerIdentity;
 
@@ -46,20 +49,19 @@ public class PlayerAttack : MonoBehaviour
     }
     public IEnumerator HandleAttackSequence()
     {
-        var currentPlayer = GameManager.Instance.GetCurrentPlayer();
-        var targetPlayer = GameManager.Instance.TargetPlayer;
+        var currentPlayer = TurnManager.Instance.GetCurrentPlayer();
+        var targetPlayer = TurnManager.Instance.GetTargetPlayer();
         Debug.Log(currentPlayer.PlayerName + " is attacking to " + targetPlayer);
         yield return new WaitForSeconds(1f);
-        Debug.Log(currentPlayer.PlayerName + " use attacking animation");
-        yield return new WaitForSeconds(1f);
+        OnStartAttack?.Invoke();
+        yield return new WaitForSeconds(2.2f);
         var bullet = Instantiate(bulletPrefab);
         bullet.name = currentPlayer.PlayerName + " bullet";
-        bullet.GetComponent<Bullet>().InitializeBullet(targetPlayer.transform.position, attackPosition.position, playerVisual.PlayerColor);
+        bullet.GetComponent<Bullet>().InitializeBullet(currentPlayer.PlayerID,targetPlayer.transform.position, attackPosition.position, playerVisual.PlayerColor);
         yield return new WaitForSeconds(1f);
-        Debug.Log("Happy");
         StopCoroutine(nameof(HandleAttackSequence));
     }
-    public void StartAttacking()
+    public void StartAttackSequence()
     {
         StartCoroutine(nameof(HandleAttackSequence));
     }
