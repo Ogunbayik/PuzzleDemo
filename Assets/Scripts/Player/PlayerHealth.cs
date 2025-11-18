@@ -36,9 +36,10 @@ public class PlayerHealth : MonoBehaviour
     {
         if(currentHealth <= damage)
         {
-            Debug.Log(playerIdentity.PlayerName + " is dead.");
             currentHealth = 0;
             healthUI.UpdateHealthBar(currentHealth, maxHealth);
+            TurnManager.Instance.RemoveDeadPlayer(playerIdentity);
+
             OnDead?.Invoke();
 
             return;

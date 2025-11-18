@@ -24,7 +24,6 @@ public class PlayerVisual : MonoBehaviour
         foreach (var material in meshRenderer.materials)
         {
             string cleanMatName = material.name.Replace(" (Instance)", "");
-            Debug.Log(cleanMatName);
 
             if (cleanMatName == Consts.PlayerMaterial.BODY_MAIN)
                 material.color = playerColor;

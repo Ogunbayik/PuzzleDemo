@@ -30,8 +30,8 @@ public class PlayerTrigger : MonoBehaviour
         yield return new WaitForSeconds(1f);
         healthUI.UpdateHealthBar(playerHealth.CurrentHealth, playerHealth.MaxHealth);
         yield return new WaitForSeconds(2f);
+        TurnManager.Instance.AdvanceTurn();
         BoardManager.Instance.ResetSelectCount();
-        GameManager.Instance.ChangePlayerTurn();
     }
 
     private void StartBulletTriggerSequnce(Bullet bullet)
