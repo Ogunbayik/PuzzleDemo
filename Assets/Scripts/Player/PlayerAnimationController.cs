@@ -39,23 +39,23 @@ public class PlayerAnimationController : MonoBehaviour
     }
     public void PlayHitAnimation()
     {
-        animator.SetTrigger(Consts.PlayerAnimationParameter.HIT_PARAMETER);
+        animator.SetTrigger(PlayerAnimationHashes.IS_HIT_HASH);
     }
     public void PlayAttackAnimation()
     {
-        animator.SetTrigger(Consts.PlayerAnimationParameter.ATTACK_PARAMETER);
+        animator.SetTrigger(PlayerAnimationHashes.IS_ATTACK_HASH);
     }
     public void PlayDeadAnimation()
     {
-        animator.SetTrigger(Consts.PlayerAnimationParameter.DEAD_PARAMETER);
+        animator.SetTrigger(PlayerAnimationHashes.IS_DEAD_HASH);
     }
-    public void PlayTurnIdleAnimation()
+    public void PlayActiveIdleAnimation()
     {
-        animator.SetBool("IsPlayerTurn", true);
+        animator.SetTrigger(PlayerAnimationHashes.IS_ACTIVEIDLE_HASH);
     }
-    public void PlaySleepIdleAnimation()
+    public void PlayPassiveIdleAnimation()
     {
-        animator.SetBool("IsPlayerTurn", false);
+        animator.SetTrigger(PlayerAnimationHashes.IS_PASSIVEIDLE_HASH);
     }
 
 }

@@ -40,12 +40,12 @@ public class TurnManager : MonoBehaviour
             currentPlayer = playerIdentities[currentPlayerIndex];
 
             var playerAnimationController = currentPlayer.GetComponentInChildren<PlayerAnimationController>();
-            playerAnimationController.PlayTurnIdleAnimation();
+            playerAnimationController.PlayActiveIdleAnimation();
         }
     }
     public void AdvanceTurn()
     {
-        currentPlayer.GetComponentInChildren<PlayerAnimationController>().PlaySleepIdleAnimation();
+        currentPlayer.GetComponentInChildren<PlayerAnimationController>().PlayPassiveIdleAnimation();
 
         if (playerIdentities.Count == currentPlayerIndex + 1)
             currentPlayerIndex = 0;
@@ -55,7 +55,7 @@ public class TurnManager : MonoBehaviour
         currentPlayer = playerIdentities[currentPlayerIndex];
         targetPlayer = null;
         targetIdentities.Clear();
-        currentPlayer.GetComponentInChildren<PlayerAnimationController>().PlayTurnIdleAnimation();
+        currentPlayer.GetComponentInChildren<PlayerAnimationController>().PlayActiveIdleAnimation();
     }
     public void SetTargetList()
     {

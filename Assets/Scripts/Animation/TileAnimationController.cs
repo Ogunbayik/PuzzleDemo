@@ -10,19 +10,19 @@ public class TileAnimationController : MonoBehaviour
 
     public void PlayOpenTileAnimation()
     {
-        tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_SELECT);
+        tileAnimator.SetTrigger(TileAnimationHashes.IS_SELECT_HASH);
     }
     public void PlayMatchTileAnimation()
     {
-        tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_MATCH);
+        tileAnimator.SetTrigger(TileAnimationHashes.IS_MATCH_HASH);
     }
     public void PlayMissTileAnimation()
     {
-        tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_MISS);
+        tileAnimator.SetTrigger(TileAnimationHashes.IS_MISS_HASH);
     }
     public void PlayWiggleTileAnimation()
     {
-        tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_WIGGLE);
+        tileAnimator.SetTrigger(TileAnimationHashes.IS_WIGGLE_HASH);
     }
     public void PlayRandomFallAnimation()
     {
@@ -33,9 +33,9 @@ public class TileAnimationController : MonoBehaviour
         tileAnimator.speed = randomAnimationSpeed;
 
         if (randomIndex == 0)
-            tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_FALLLEFT);
+            tileAnimator.SetTrigger(TileAnimationHashes.IS_FALLLEFT_HASH);
         else
-            tileAnimator.SetTrigger(Consts.TileAnimationParameter.IS_FALLRIGHT);
+            tileAnimator.SetTrigger(TileAnimationHashes.IS_FALLRIGHT_HASH);
 
     }
 }

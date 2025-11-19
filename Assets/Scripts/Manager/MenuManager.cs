@@ -52,7 +52,6 @@ public class MenuManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         LoadGameScene();
     }
-
     public void LoadGameScene()
     {
         const int gameSceneIndex = 1;
