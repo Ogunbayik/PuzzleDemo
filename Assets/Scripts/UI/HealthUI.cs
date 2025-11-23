@@ -3,18 +3,15 @@ using UnityEngine.UI;
 
 public class HealthUI : MonoBehaviour
 {
-    private PlayerTrigger playerTrigger;
-
     private const float HEALTH_FILL_LERP_SPEED = 3f;
 
     [Header("UI Settings")]
     [SerializeField] private Image imageFill;
     [SerializeField] private Image remainFill;
     [SerializeField] private Image imageFrame;
+
     private void Awake()
     {
-        playerTrigger = GetComponent<PlayerTrigger>();
-
         imageFill.fillAmount = 1;
         remainFill.fillAmount = 1;
     }
@@ -24,6 +21,9 @@ public class HealthUI : MonoBehaviour
         imageFrame.color = frameColor;
         remainFill.color = frameColor;
         transform.position = transform.position + offsetY;
+
+        var healthUIRotation = new Vector3(45f, -45f, 0f);
+        transform.rotation = Quaternion.Euler(healthUIRotation);
     }
     private void Update()
     {

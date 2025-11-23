@@ -18,7 +18,7 @@ public class BoardManager : MonoBehaviour
     [Header("Board Settings")]
     [SerializeField] private int width;
     [SerializeField] private int height;
-    [SerializeField] private int tileScale;
+    [SerializeField] private float tileScale;
     [SerializeField] private GameObject tilePrefab;
     [SerializeField] private Sprite questionSprite;
     [SerializeField] private Sprite bombSprite;
@@ -98,7 +98,7 @@ public class BoardManager : MonoBehaviour
             for (int j = 0; j < width; j++)
             {
                 var spawnPosition = Vector3.zero;
-                spawnPosition.Set(i * tileScale, j * tileScale, 0f);
+                spawnPosition.Set(i * tileScale, 1f, j * tileScale);
 
                 var tile = Instantiate(tilePrefab, spawnPosition, Quaternion.identity);
                 tile.transform.position = spawnPosition;

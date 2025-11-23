@@ -78,13 +78,8 @@ public class GameManager : MonoBehaviour
             playerVisual.InitializeVisual(playerColors[i], frameColors[i], playerSprites[i]);
             playerAttack.InitializeAttackPosition();
 
-            var offsetUpY = new Vector3(0f, 3.5f, 0f);
-            var offsetDownY = new Vector3(0f, -1.2f, 0f);
-
-            if (i < Consts.GameSetup.PLAYER_COUNT_SPECIAL_SETUP - 1)
-                playerHealth.InitializeHealthBar(offsetUpY);
-            else
-                playerHealth.InitializeHealthBar(offsetDownY);
+            var offsetUpY = new Vector3(0f, 4f, 0f);
+            playerHealth.InitializeHealthBar(offsetUpY);
 
             TurnManager.Instance.AddPlayer(playerIdentity);
         }
