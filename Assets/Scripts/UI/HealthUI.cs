@@ -1,9 +1,10 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class HealthUI : MonoBehaviour
 {
-    private const float HEALTH_FILL_LERP_SPEED = 3f;
+    private const float HEALTH_FILL_LERP_SPEED = 2f;
 
     [Header("UI Settings")]
     [SerializeField] private Image imageFill;
@@ -25,27 +26,23 @@ public class HealthUI : MonoBehaviour
         var healthUIRotation = new Vector3(45f, -45f, 0f);
         transform.rotation = Quaternion.Euler(healthUIRotation);
     }
-    private void Update()
+    public void HandleHealthChange(int currentHealth, int maxHealth, float delayTime)
     {
-        if (ShouldRemainFillDecrease())
-            UpdateRemainFillAmount();
-    }
-    public void UpdateHealthBar(int currentHealth, int maxHealth)
-    {
-        float amount = (float)currentHealth / maxHealth;
+        var amount = (float)currentHealth / maxHealth;
         imageFill.fillAmount = amount;
-    }
-    public void UpdateRemainFillAmount()
-    {
-        if (imageFill.fillAmount < remainFill.fillAmount)
-            remainFill.fillAmount -= Time.deltaTime / HEALTH_FILL_LERP_SPEED;
-    }
-    public bool ShouldRemainFillDecrease()
-    {
-        if (remainFill.fillAmount >= imageFill.fillAmount)
-            return true;
-        else
-            return false;
-    }
 
+        StartCoroutine(DelayedRemainFillDecrease(delayTime));
+    }
+    public IEnumerator DelayedRemainFillDecrease(float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
+        while(remainFill.fillAmount > imageFill.fillAmount)
+        {
+            remainFill.fillAmount = Mathf.MoveTowards(remainFill.fillAmount, imageFill.fillAmount, HEALTH_FILL_LERP_SPEED * Time.deltaTime);
+
+            yield return null;
+        }
+
+        remainFill.fillAmount = imageFill.fillAmount;
+    }
 }

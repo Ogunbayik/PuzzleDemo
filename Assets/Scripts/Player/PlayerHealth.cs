@@ -6,7 +6,6 @@ public class PlayerHealth : MonoBehaviour
     public event Action OnDead;
     public event Action OnHit;
 
-    private PlayerTrigger playerTrigger;
     private PlayerIdentity playerIdentity;
     private PlayerVisual playerVisual;
     private HealthUI healthUI;
@@ -14,13 +13,12 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private int maxHealth;
 
     private int currentHealth;
-
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
+    private bool isInvulnerable;
     private void Awake()
     {
         healthUI = GetComponentInChildren<HealthUI>();
-        playerTrigger = GetComponent<PlayerTrigger>();
         playerIdentity = GetComponent<PlayerIdentity>();
         playerVisual = GetComponent<PlayerVisual>();
     }
@@ -34,10 +32,13 @@ public class PlayerHealth : MonoBehaviour
     }
     public void TakeDamage(int damage)
     {
+        if (isInvulnerable)
+            return;
+
         if(currentHealth <= damage)
         {
             currentHealth = 0;
-            healthUI.UpdateHealthBar(currentHealth, maxHealth);
+            healthUI.HandleHealthChange(currentHealth, maxHealth, 2f);
             TurnManager.Instance.RemoveDeadPlayer(playerIdentity);
 
             OnDead?.Invoke();
@@ -48,8 +49,8 @@ public class PlayerHealth : MonoBehaviour
         currentHealth -= damage;
         OnHit?.Invoke();
     }
-    public bool IsDead()
+    public void SetInvulnerableStatue(bool isInvulnerable)
     {
-        return currentHealth <= 0;
+        this.isInvulnerable = isInvulnerable;
     }
 }

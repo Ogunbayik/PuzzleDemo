@@ -7,8 +7,6 @@ public class Bullet : MonoBehaviour
 
     private int bulletID;
     private float bulletSpeed = 10f;
-    private int bulletDamage = 50;
-    public int BulletDamage => bulletDamage;
     public int BulletID => bulletID;
     private void Awake()
     {
@@ -17,7 +15,6 @@ public class Bullet : MonoBehaviour
     private void Update()
     {
         transform.position = Vector3.MoveTowards(transform.position, movePosition, bulletSpeed * Time.deltaTime);
-        
     }
     public void InitializeBullet(int ID,Vector3 targetPosition, Vector3 spawnPosition, Color color)
     {

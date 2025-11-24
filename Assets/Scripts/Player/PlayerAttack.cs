@@ -53,13 +53,15 @@ public class PlayerAttack : MonoBehaviour
         var targetPlayer = TurnManager.Instance.GetTargetPlayer();
         Debug.Log(currentPlayer.PlayerName + " is attacking to " + targetPlayer);
         yield return new WaitForSeconds(1f);
+        //Activate a shield for a random player
+        var randomPlayer = TurnManager.Instance.GetRandomPlayer();
+        var playerVisual = randomPlayer.GetComponent<PlayerVisual>();
+        playerVisual.ActivateShield();
         OnStartAttack?.Invoke();
         yield return new WaitForSeconds(2.2f);
         var bullet = Instantiate(bulletPrefab);
         bullet.name = currentPlayer.PlayerName + " bullet";
         bullet.GetComponent<Bullet>().InitializeBullet(currentPlayer.PlayerID,targetPlayer.transform.position, attackPosition.position, playerVisual.PlayerColor);
-        yield return new WaitForSeconds(1f);
-        StopCoroutine(nameof(HandleAttackSequence));
     }
     public void StartAttackSequence()
     {

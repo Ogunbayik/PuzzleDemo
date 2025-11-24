@@ -34,6 +34,8 @@ public class TurnManager : MonoBehaviour
 
     public void StartGame()
     {
+        BoardManager.Instance.ResetSelectCount();
+
         if(playerIdentities.Count >= minimumPlayerCount)
         {
             currentPlayerIndex = 0;
@@ -53,9 +55,23 @@ public class TurnManager : MonoBehaviour
             currentPlayerIndex++;
 
         currentPlayer = playerIdentities[currentPlayerIndex];
+        currentPlayer.GetComponentInChildren<PlayerAnimationController>().PlayActiveIdleAnimation();
+
+        ClearTargets();
+        ResetPlayersInvulnerableStatue();
+    }
+    private void ResetPlayersInvulnerableStatue()
+    {
+        foreach (var player in playerIdentities)
+        {
+            var playerHealth = player.GetComponent<PlayerHealth>();
+            playerHealth.SetInvulnerableStatue(false);
+        }
+    }
+    private void ClearTargets()
+    {
         targetPlayer = null;
         targetIdentities.Clear();
-        currentPlayer.GetComponentInChildren<PlayerAnimationController>().PlayActiveIdleAnimation();
     }
     public void SetTargetList()
     {
@@ -81,5 +97,12 @@ public class TurnManager : MonoBehaviour
     public PlayerIdentity GetTargetPlayer()
     {
         return targetPlayer;
+    }
+    public PlayerIdentity GetRandomPlayer()
+    {
+        var randomIndex = Random.Range(0, playerIdentities.Count);
+        var randomPlayer = playerIdentities[randomIndex];
+
+        return randomPlayer;
     }
 }

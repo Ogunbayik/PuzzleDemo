@@ -16,6 +16,11 @@ public static class Consts
         public const string BODY_MAIN = "Body";
         public const string BODY_STRIPE = "Body_2";
     }
+    public static class GameDamage
+    {
+        public const int BOMB_DAMAGE = 25;
+        public const int FIREBALL_DAMAGE = 10;
+    }
 
 
 }

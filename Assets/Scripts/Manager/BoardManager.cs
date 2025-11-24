@@ -9,7 +9,7 @@ public class BoardManager : MonoBehaviour
 
     public event Action OnMatch;
     public event Action OnMiss;
-    public event Action OnRefreshBoard;
+    public event Action OnClickBomb;
 
     [Header("Game Settings")]
     [SerializeField] private int playerCount;
@@ -27,7 +27,7 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private Color playerOneColor;
     [SerializeField] private Color playerTwoColor;
     [Header("Particle Settings")]
-    [SerializeField] private GameObject explosionParticle;
+    [SerializeField] private GameObject explosionVFX;
 
     public List<Sprite> allGreenTypeSprites = new List<Sprite>();
     public List<Sprite> allRedTypeSprites = new List<Sprite>();
@@ -88,6 +88,7 @@ public class BoardManager : MonoBehaviour
     }
     private void SetupBoard()
     {
+        selectCount = maxSelectCount;
         var totalCount = height * width;
         var remaintTileCount = totalCount - bombCount;
         //For PlayerCount = 2
@@ -125,7 +126,9 @@ public class BoardManager : MonoBehaviour
 
             if(selectedTile.GetActualSprite() == bombSprite)
             {
-                StartCoroutine(RefreshBoardSequence(selectedTile, null));
+                selectCount = maxSelectCount;
+                CheckedForMatch(selectedTile, null);
+                //StartCoroutine(RefreshBoardSequence(selectedTile, null));
             }
 
         }
@@ -152,12 +155,13 @@ public class BoardManager : MonoBehaviour
     {
         if (checkedTile != null)
         {
+            //First selected tile is not the bomb
             var selectedTileSprite = selectedTile.GetActualSprite();
             var checkTileSprite = checkedTile.GetActualSprite();
             if (checkTileSprite == bombSprite)
             {
-                StartCoroutine(RefreshBoardSequence(selectedTile, checkedTile));
-                OnRefreshBoard?.Invoke();
+                StartCoroutine(HandleClickBombSequence(selectedTile, checkedTile));
+                OnClickBomb?.Invoke();
             }
             else if (selectedTileSprite == checkTileSprite)
             {
@@ -170,14 +174,26 @@ public class BoardManager : MonoBehaviour
                 OnMiss?.Invoke();
             }
         }
+        else
+        {
+            //First selected tile is the bomb
+            StartCoroutine(HandleClickBombSequence(selectedTile, checkedTile));
+        }
     }
-    private IEnumerator RefreshBoardSequence(Tile selectedTile, Tile checkedTile)
+    private IEnumerator HandleClickBombSequence(Tile selectedTile, Tile checkedTile)
     {
         yield return new WaitForSeconds(Consts.TileAnimationTime.OPEN_ANIMATION_TIME);
+
         if (checkedTile != null)
-            BombEffectActivion(checkedTile.transform.position);
+            VFXManager.Instance.PlayExplosionVFX(checkedTile.transform.position);
         else
-            BombEffectActivion(selectedTile.transform.position);
+            VFXManager.Instance.PlayExplosionVFX(selectedTile.transform.position);
+        yield return new WaitForSeconds(2f);
+        var currentPlayer = TurnManager.Instance.GetCurrentPlayer();
+        var playerHealth = currentPlayer.GetComponent<PlayerHealth>();
+        var healthUI = currentPlayer.GetComponentInChildren<HealthUI>();
+        playerHealth.TakeDamage(Consts.GameDamage.BOMB_DAMAGE);
+        healthUI.HandleHealthChange(playerHealth.CurrentHealth, playerHealth.MaxHealth, 2f);
         yield return new WaitForSeconds(2f);
         RefreshBoard();
     }
@@ -219,15 +235,7 @@ public class BoardManager : MonoBehaviour
             allTiles.Add(transform.GetChild(i).gameObject);
 
         foreach (var tile in allTiles)
-        {
             tile.GetComponent<TileAnimationController>().PlayRandomFallAnimation();
-        }
-    }
-    private void BombEffectActivion(Vector3 position)
-    {
-        var offsetZ = -2f;
-        var explosion = Instantiate(explosionParticle);
-        explosion.transform.position = position + new Vector3(0f, 0f, offsetZ);
     }
     public void ResetSelectCount()
     {

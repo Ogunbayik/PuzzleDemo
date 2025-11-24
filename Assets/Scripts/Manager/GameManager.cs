@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -43,30 +44,24 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         SetSpawnPosition();
-        SetupPlayer();
+        StartCoroutine(nameof(SpawnPlayerSequence));
     }
     private void SetSpawnPosition()
     {
-        if (playerCount == Consts.GameSetup.PLAYER_COUNT_SPECIAL_SETUP)
-        {
-            var lastSpawnPositionIndex = spawnPosition.Length - 1;
-            for (int i = 0; i < lastSpawnPositionIndex - 1; i++)
-                spawnPositionList.Add(spawnPosition[i].transform.position);
-
-            //Add last two transform mid position
-            Vector3 mergedSpawnPoint = (spawnPosition[lastSpawnPositionIndex].transform.position + spawnPosition[lastSpawnPositionIndex - 1].transform.position) / 2f;
-            spawnPositionList.Add(mergedSpawnPoint);
-        }
-        else
-        {
-            for (int i = 0; i < playerCount; i++)
-                spawnPositionList.Add(spawnPosition[i].transform.position);
-        }
+        for (int i = 0; i < playerCount; i++)
+            spawnPositionList.Add(spawnPosition[i].transform.position);
     }
-    private void SetupPlayer()
+    private IEnumerator SpawnPlayerSequence()
     {
+        //Camera moves to spawnPlayer
+        yield return new WaitForSeconds(2f);
+
         for (int i = 0; i < playerCount; i++)
         {
+            VFXManager.Instance.PlaySpawnVFX(spawnPosition[i].transform.position);
+
+            yield return new WaitForSeconds(3f);
+
             var player = Instantiate(playerPrefab);
             var playerIdentity = player.GetComponent<PlayerIdentity>();
             var playerVisual = player.GetComponent<PlayerVisual>();
@@ -84,7 +79,10 @@ public class GameManager : MonoBehaviour
             TurnManager.Instance.AddPlayer(playerIdentity);
         }
 
+        yield return new WaitForSeconds(2f);
+
         TurnManager.Instance.StartGame();
+        Debug.Log("Game is starting");
     }
     public void SetTargetPlayer(PlayerIdentity targetIdentity)
     {

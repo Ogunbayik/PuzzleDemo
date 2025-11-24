@@ -23,12 +23,12 @@ public class PlayerTrigger : MonoBehaviour
     }
     private IEnumerator BulletTriggerSequence(Bullet bullet)
     {
-        int damageAmount = bullet.BulletDamage;
+        VFXManager.Instance.PlayHitVFX(bullet.transform.position);
+
+        int damageAmount = Consts.GameDamage.FIREBALL_DAMAGE;
         playerHealth.TakeDamage(damageAmount);
+        healthUI.HandleHealthChange(playerHealth.CurrentHealth, playerHealth.MaxHealth, 2f);
         bullet.DestroyPrefab();
-        //Bullet için patlama efekti ekle
-        yield return new WaitForSeconds(1f);
-        healthUI.UpdateHealthBar(playerHealth.CurrentHealth, playerHealth.MaxHealth);
         yield return new WaitForSeconds(2f);
         TurnManager.Instance.AdvanceTurn();
         BoardManager.Instance.ResetSelectCount();
