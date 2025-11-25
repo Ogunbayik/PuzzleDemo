@@ -3,7 +3,7 @@ using UnityEngine;
 public class VFXManager : MonoBehaviour
 {
     public static VFXManager Instance;
-
+    [Header("Game Effects")]
     [SerializeField] private GameObject explosionVFX;
     [SerializeField] private GameObject spawnVFX;
     [SerializeField] private GameObject shieldVFX;

@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using UnityEngine;
+using DG.Tweening;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -32,22 +34,30 @@ public class PlayerHealth : MonoBehaviour
     }
     public void TakeDamage(int damage)
     {
-        if (isInvulnerable)
-            return;
-
-        if(currentHealth <= damage)
+        if (!isInvulnerable)
         {
-            currentHealth = 0;
-            healthUI.HandleHealthChange(currentHealth, maxHealth, 2f);
-            TurnManager.Instance.RemoveDeadPlayer(playerIdentity);
-
-            OnDead?.Invoke();
-
-            return;
+            currentHealth -= damage;
+            OnHit?.Invoke();
         }
+        else
+            return;
 
-        currentHealth -= damage;
-        OnHit?.Invoke();
+        if (currentHealth <= 0)
+            StartCoroutine(nameof(HandleDeadSequence));
+    }
+    public IEnumerator HandleDeadSequence()
+    {
+        yield return new WaitForSeconds(Consts.DelayTime.PLAYER_HIT_ANIMATION_DURATION);
+        CameraManager.Instance.SetHelperCameraPosition(this.transform.position);
+        CameraManager.Instance.ToggleGameCamera();
+        yield return new WaitForSeconds(Consts.DelayTime.PLAYER_HEALTH_CHANGE_DELAY);
+        currentHealth = 0;
+        healthUI.HandleHealthChange(currentHealth, maxHealth, Consts.DelayTime.REMAINFILL_DECREASE_DELAY);
+        TurnManager.Instance.RemoveDeadPlayer(playerIdentity);
+        yield return new WaitForSeconds(Consts.DelayTime.START_PLAYER_DEAD_DELAY);
+        OnDead?.Invoke();
+        yield return new WaitForSeconds(Consts.DelayTime.PLAYER_DEAD_ANIMATION_DURATION);
+        CameraManager.Instance.ToggleGameCamera();
     }
     public void SetInvulnerableStatue(bool isInvulnerable)
     {

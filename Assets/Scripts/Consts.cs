@@ -19,9 +19,19 @@ public static class Consts
     public static class GameDamage
     {
         public const int BOMB_DAMAGE = 25;
-        public const int FIREBALL_DAMAGE = 10;
+        public const int FIREBALL_DAMAGE = 50;
     }
-
+    public static class DelayTime
+    {
+        public const float SPAWN_PLAYER_DELAY = 3f;
+        public const float CHANGE_CAMERA_DELAY = 1f;
+        public const float START_GAME_DELAY = 2f;
+        public const float PLAYER_HIT_ANIMATION_DURATION = 0.2f;
+        public const float PLAYER_HEALTH_CHANGE_DELAY = 1f;
+        public const float REMAINFILL_DECREASE_DELAY = 2f;
+        public const float START_PLAYER_DEAD_DELAY = 1f;
+        public const float PLAYER_DEAD_ANIMATION_DURATION = 2f;
+    }
 
 }
 

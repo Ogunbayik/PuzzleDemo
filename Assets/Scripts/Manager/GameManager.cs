@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -53,14 +52,13 @@ public class GameManager : MonoBehaviour
     }
     private IEnumerator SpawnPlayerSequence()
     {
-        //Camera moves to spawnPlayer
-        yield return new WaitForSeconds(2f);
-
         for (int i = 0; i < playerCount; i++)
         {
+            CameraManager.Instance.SetHelperCameraPosition(spawnPositionList[i]);
+            CameraManager.Instance.ToggleGameCamera();
             VFXManager.Instance.PlaySpawnVFX(spawnPosition[i].transform.position);
 
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(Consts.DelayTime.SPAWN_PLAYER_DELAY);
 
             var player = Instantiate(playerPrefab);
             var playerIdentity = player.GetComponent<PlayerIdentity>();
@@ -77,9 +75,11 @@ public class GameManager : MonoBehaviour
             playerHealth.InitializeHealthBar(offsetUpY);
 
             TurnManager.Instance.AddPlayer(playerIdentity);
+            yield return new WaitForSeconds(Consts.DelayTime.CHANGE_CAMERA_DELAY);
+            CameraManager.Instance.ToggleGameCamera();
         }
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(Consts.DelayTime.START_GAME_DELAY);
 
         TurnManager.Instance.StartGame();
         Debug.Log("Game is starting");
