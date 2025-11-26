@@ -1,70 +1,54 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using DG.Tweening;
 
 public class PlayerAttack : MonoBehaviour
 {
     public event Action OnStartAttack;
 
-    private PlayerVisual playerVisual;
     private PlayerIdentity playerIdentity;
+    private PlayerVisual playerVisual;
 
+    [Header("Attack Settings")]
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform attackPosition;
-
     private void Awake()
     {
-        playerVisual = GetComponent<PlayerVisual>();
         playerIdentity = GetComponent<PlayerIdentity>();
+        playerVisual = GetComponent<PlayerVisual>();
     }
-    public void InitializeAttackPosition()
+    private void OnEnable()
     {
-        //Top side player count is always = 2
-        int maxPlayerInTopZone = 2;
-        int playerSideIndex = playerIdentity.PlayerID % 2;
-        var rightSideIndex = 0;
-
-        var horizontalOffset = 1f;
-        var downZoneOffsetY = 2f;
-        var desiredPosition = Vector3.zero;
-
-        if (playerIdentity.PlayerID < maxPlayerInTopZone)
-        {
-            //Players are in top zone
-            if (playerSideIndex == rightSideIndex)
-                desiredPosition.Set(horizontalOffset, 0f, 0f);
-            else
-                desiredPosition.Set(-horizontalOffset, 0f, 0f);
-        }
-        else
-        {
-            //Players are in down zone
-            if (playerSideIndex == rightSideIndex)
-                desiredPosition.Set(horizontalOffset, downZoneOffsetY, 0f);
-            else
-                desiredPosition.Set(-horizontalOffset, downZoneOffsetY, 0f);
-        }
-
-        attackPosition.transform.position += desiredPosition;
+        GameUIManager.Instance.OnEnemyTargetSelected += Instance_OnEnemyTargetSelected;
     }
-    public IEnumerator HandleAttackSequence()
+    private void OnDisable()
     {
-        var currentPlayer = TurnManager.Instance.GetCurrentPlayer();
-        var targetPlayer = TurnManager.Instance.GetTargetPlayer();
-        Debug.Log(currentPlayer.PlayerName + " is attacking to " + targetPlayer);
-        yield return new WaitForSeconds(1f);
-        //Activate a shield for a random player
+        GameUIManager.Instance.OnEnemyTargetSelected -= Instance_OnEnemyTargetSelected;
+    }
+    private void Instance_OnEnemyTargetSelected(PlayerIdentity target)
+    {
+        if (playerIdentity.PlayerID == TurnManager.Instance.currentPlayerIndex)
+            HandleAttackSequence(target);
+    }
+    private void HandleAttackSequence(PlayerIdentity target)
+    {
+        Sequence attackSequnce = DOTween.Sequence();
+        attackSequnce.Append(playerVisual.bodyVisual.transform.DOLookAt(target.transform.position, Consts.DelayTime.PLAYER_LOOK_TIME));
+        attackSequnce.JoinCallback(() => GameUIManager.Instance.HideTargetPanel());
+        attackSequnce.JoinCallback(() => GameUIManager.Instance.ResetTargetButton());
+        //First Part
         var randomPlayer = TurnManager.Instance.GetRandomPlayer();
-        var playerVisual = randomPlayer.GetComponent<PlayerVisual>();
-        playerVisual.ActivateShield();
-        OnStartAttack?.Invoke();
-        yield return new WaitForSeconds(2.2f);
-        var bullet = Instantiate(bulletPrefab);
-        bullet.name = currentPlayer.PlayerName + " bullet";
-        bullet.GetComponent<Bullet>().InitializeBullet(currentPlayer.PlayerID,targetPlayer.transform.position, attackPosition.position, playerVisual.PlayerColor);
+        attackSequnce.AppendInterval(Consts.DelayTime.ACTIVATE_SHIELD_DELAY);
+        attackSequnce.AppendCallback(() => randomPlayer.GetComponent<PlayerVisual>().ActivateShield());
+        attackSequnce.JoinCallback(() => OnStartAttack?.Invoke());
+        //Second Part
+        attackSequnce.AppendInterval(Consts.PlayerAnimationTime.ATTACK_ANIMATION_DURATION);
+        attackSequnce.AppendCallback(() => CreateBullet(target));
     }
-    public void StartAttackSequence()
+    private void CreateBullet(PlayerIdentity target)
     {
-        StartCoroutine(nameof(HandleAttackSequence));
+        var bullet = Instantiate(bulletPrefab);
+        bullet.GetComponent<Bullet>().InitializeBullet(target.transform, attackPosition.position, playerVisual.PlayerColor);
     }
 }

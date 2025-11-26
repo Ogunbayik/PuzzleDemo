@@ -9,9 +9,11 @@ public class PlayerHealth : MonoBehaviour
     public event Action OnHit;
 
     private PlayerIdentity playerIdentity;
+    private PlayerTrigger playerTrigger;
     private PlayerVisual playerVisual;
     private HealthUI healthUI;
 
+    [Header("Health Settings")]
     [SerializeField] private int maxHealth;
 
     private int currentHealth;
@@ -23,10 +25,31 @@ public class PlayerHealth : MonoBehaviour
         healthUI = GetComponentInChildren<HealthUI>();
         playerIdentity = GetComponent<PlayerIdentity>();
         playerVisual = GetComponent<PlayerVisual>();
+        playerTrigger = GetComponent<PlayerTrigger>();
     }
     public void InitializeHealthBar(Vector3 offset)
     {
         healthUI.InitializeBar(offset, playerVisual.PlayerColor, playerVisual.FrameColor);
+    }
+    private void OnEnable()
+    {
+        playerTrigger.OnHitBullet += PlayerTrigger_OnHitBullet;
+        BoardManager.Instance.OnClickBomb += Instance_OnClickBomb;
+    }
+    private void OnDisable()
+    {
+        playerTrigger.OnHitBullet -= PlayerTrigger_OnHitBullet;
+        BoardManager.Instance.OnClickBomb -= Instance_OnClickBomb;
+    }
+    private void Instance_OnClickBomb(PlayerIdentity currentPlayer)
+    {
+        if (currentPlayer.PlayerID == playerIdentity.PlayerID)
+            TakeDamage(Consts.GameDamage.BOMB_DAMAGE);
+    }
+    private void PlayerTrigger_OnHitBullet(Bullet bullet)
+    {
+        int damageMultiply = TurnManager.Instance.CanDoubleDamage() ? Consts.GameDamage.DOUBLE_DAMAGE_MULTIPLIER : Consts.GameDamage.DEFAULT_MULTIPLIER;
+        TakeDamage(bullet.BulletDamage * damageMultiply);
     }
     void Start()
     {
@@ -35,29 +58,62 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int damage)
     {
         if (!isInvulnerable)
-        {
             currentHealth -= damage;
-            OnHit?.Invoke();
-        }
         else
+        {
+            HandleInvulnerableSequence();
             return;
+        }
 
         if (currentHealth <= 0)
-            StartCoroutine(nameof(HandleDeadSequence));
+            HandleDeadSequence();
+        else
+            HandleHitSequence();
     }
-    public IEnumerator HandleDeadSequence()
+    private void HandleInvulnerableSequence()
     {
-        yield return new WaitForSeconds(Consts.DelayTime.PLAYER_HIT_ANIMATION_DURATION);
-        CameraManager.Instance.SetHelperCameraPosition(this.transform.position);
-        CameraManager.Instance.ToggleGameCamera();
-        yield return new WaitForSeconds(Consts.DelayTime.PLAYER_HEALTH_CHANGE_DELAY);
-        currentHealth = 0;
-        healthUI.HandleHealthChange(currentHealth, maxHealth, Consts.DelayTime.REMAINFILL_DECREASE_DELAY);
-        TurnManager.Instance.RemoveDeadPlayer(playerIdentity);
-        yield return new WaitForSeconds(Consts.DelayTime.START_PLAYER_DEAD_DELAY);
-        OnDead?.Invoke();
-        yield return new WaitForSeconds(Consts.DelayTime.PLAYER_DEAD_ANIMATION_DURATION);
-        CameraManager.Instance.ToggleGameCamera();
+        Sequence invulnerableSequence = DOTween.Sequence();
+
+        invulnerableSequence.AppendInterval(Consts.DelayTime.ADVANCE_TURN_DELAY);
+        invulnerableSequence.AppendCallback(() => TurnManager.Instance.AdvanceTurn());
+        invulnerableSequence.JoinCallback(() => BoardManager.Instance.ResetSelectedTiles());
+    }
+    private void HandleHitSequence()
+    {
+        Sequence hitSequence = DOTween.Sequence();
+        //First Part
+        hitSequence.AppendInterval(Consts.PlayerAnimationTime.HIT_ANIMATION_DURATION);
+        hitSequence.AppendCallback(() => healthUI.HandleHealthChange(currentHealth, maxHealth, Consts.DelayTime.REMAINFILL_DECREASE_DELAY));
+        //SecondPart
+        hitSequence.AppendInterval(Consts.DelayTime.ADVANCE_TURN_DELAY);
+        hitSequence.AppendCallback(() => TurnManager.Instance.AdvanceTurn());
+        hitSequence.JoinCallback(() => TurnManager.Instance.SetDoubleDamageState(false));
+        hitSequence.JoinCallback(() => BoardManager.Instance.ResetSelectedTiles());
+    }
+    private void HandleDeadSequence()
+    {
+        Sequence deadSequence = DOTween.Sequence();
+
+        //First Part
+        deadSequence.AppendInterval(Consts.PlayerAnimationTime.HIT_ANIMATION_DURATION);
+        deadSequence.AppendCallback(() => CameraManager.Instance.SetHelperCameraPosition(this.transform.position));
+        deadSequence.JoinCallback(() => CameraManager.Instance.ToggleGameCamera());
+        //Second Part
+        deadSequence.AppendInterval(Consts.DelayTime.PLAYER_HEALTH_CHANGE_DELAY);
+        deadSequence.AppendCallback(() => currentHealth = 0);
+        deadSequence.JoinCallback(() => healthUI.HandleHealthChange(currentHealth, maxHealth, Consts.DelayTime.REMAINFILL_DECREASE_DELAY));
+        //Third Part
+        deadSequence.AppendInterval(Consts.DelayTime.START_PLAYER_DEAD_DELAY);
+        deadSequence.AppendCallback(() => OnDead?.Invoke());
+        deadSequence.JoinCallback(() => TurnManager.Instance.RemoveDeadPlayer(playerIdentity));
+        //Last Part
+        deadSequence.AppendInterval(Consts.PlayerAnimationTime.DEAD_ANIMATION_DURATION);
+        deadSequence.AppendCallback(() => CameraManager.Instance.ToggleGameCamera());
+        //Last Part
+        deadSequence.AppendInterval(Consts.DelayTime.ADVANCE_TURN_DELAY);
+        deadSequence.AppendCallback(() => TurnManager.Instance.AdvanceTurn());
+        deadSequence.JoinCallback(() => TurnManager.Instance.SetDoubleDamageState(false));
+        deadSequence.JoinCallback(() => BoardManager.Instance.ResetSelectedTiles());
     }
     public void SetInvulnerableStatue(bool isInvulnerable)
     {

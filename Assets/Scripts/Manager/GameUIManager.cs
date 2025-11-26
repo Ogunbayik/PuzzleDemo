@@ -2,21 +2,24 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameUIManager : MonoBehaviour
 {
     public static GameUIManager Instance;
 
     public event Action OnGameStart;
+    public event Action<PlayerIdentity> OnEnemyTargetSelected;
+    [Header("UI Settings")]
+    [SerializeField] private TextMeshProUGUI _turnText;
+    [SerializeField] private GameObject _targetButtonPanel;
+    [SerializeField] private GameObject _targetSelectPanel;
+    [SerializeField] private GameObject _targetButtonPrefab;
+    [SerializeField] private Button _selectButton;
 
-    [SerializeField] private TextMeshProUGUI turnText;
-    [SerializeField] private GameObject targetImagePanel;
-    [SerializeField] private GameObject targetSelectPanel;
-    [SerializeField] private GameObject targetPropertyUIPrefab;
+    private List<TargetSelectButton> _targetButtonList = new List<TargetSelectButton>();
 
-    private List<TargetPropertyUI> propertyUIList = new List<TargetPropertyUI>();
-
-    private TargetPropertyUI selectedPropertyUI;
+    private TargetSelectButton _selectedTargetButton;
     private void Awake()
     {
         #region Singleton
@@ -32,63 +35,65 @@ public class GameUIManager : MonoBehaviour
         #endregion
 
         HideTargetPanel();
+        _selectButton.onClick.AddListener(() => SelectTargetPlayer());
     }
 
+    private void SelectTargetPlayer()
+    {
+        if (_selectedTargetButton != null)
+        {
+            PlayerIdentity target = _selectedTargetButton.Target;
+            TurnManager.Instance.SetTargetPlayer(target);
+            OnEnemyTargetSelected?.Invoke(target);
+        }
+        else
+            Debug.Log("First you need to choose a player");
+
+    }
     public void SetupPanel(int targetCount)
     {
         DisplayTargetPanel();
 
         for (int i = 0; i < targetCount; i++)
         {
-            var propertyUI = Instantiate(targetPropertyUIPrefab, targetImagePanel.transform);
-            propertyUIList.Add(propertyUI.GetComponent<TargetPropertyUI>());
+            var targetButton = Instantiate(_targetButtonPrefab, _targetButtonPanel.transform);
+            _targetButtonList.Add(targetButton.GetComponent<TargetSelectButton>());
 
             var targets = TurnManager.Instance.GetTargetList();
-            Debug.Log(targets.Count);
-            var targetVisual = targets[i].GetComponent<PlayerVisual>();
             var targetIdentity = targets[i].GetComponent<PlayerIdentity>();
 
-            var targetFrameColor = targetVisual.FrameColor;
-            targetFrameColor.a = 0.4f;
-            propertyUI.GetComponent<TargetPropertyUI>().InitializeTargetProperty(targetIdentity,targetVisual.PlayerSprite, targetIdentity.PlayerName,targetVisual.PlayerColor, targetFrameColor);
+            targetButton.GetComponent<TargetSelectButton>().InitiliazeTargetButton(targetIdentity);
         }
     }
-    public void SetSelectedPropertyUI(TargetPropertyUI property)
+    public void SelectTargetButton(TargetSelectButton targetButton)
     {
-        if (selectedPropertyUI != null)
-            selectedPropertyUI.GetComponent<TargetPropertyUI>().SetBackgroundColor(selectedPropertyUI.InitialColor);
+        if (_selectedTargetButton != null)
+            _selectedTargetButton.GetComponent<TargetSelectButton>().SetBackgroundColor(_selectedTargetButton.InitialColor);
 
-        selectedPropertyUI = property;
-        selectedPropertyUI.GetComponent<TargetPropertyUI>().SetBackgroundColor(selectedPropertyUI.SelectedColor);
-
-        TurnManager.Instance.SetTargetPlayer(selectedPropertyUI.Target);
+        _selectedTargetButton = targetButton;
+        _selectedTargetButton.GetComponent<TargetSelectButton>().SetBackgroundColor(_selectedTargetButton.SelectedColor);
     }
     public void DisplayTurnText()
     {
-        turnText.gameObject.SetActive(true);
+        _turnText.gameObject.SetActive(true);
     }
     public void HideTurnText()
     {
-        turnText.gameObject.SetActive(false);
+        _turnText.gameObject.SetActive(false);
     }
-    public void UpdateTurnDisplay(PlayerIdentity playerIdentity, PlayerVisual playerVisual)
+    public void ResetTargetButton()
     {
-        turnText.text = playerIdentity.PlayerName + " Player Turn";
-        turnText.material.color = playerVisual.PlayerColor;
-    }
-    public void ResetPropertyList()
-    {
-        foreach (var property in propertyUIList)
-            Destroy(property.gameObject);
+        foreach (var button in _targetButtonList)
+            Destroy(button.gameObject);
 
-        propertyUIList.Clear();
+        _targetButtonList.Clear();
     }
     public void DisplayTargetPanel()
     {
-        targetSelectPanel.SetActive(true);
+        _targetSelectPanel.SetActive(true);
     }
     public void HideTargetPanel()
     {
-        targetSelectPanel.SetActive(false);
+        _targetSelectPanel.SetActive(false);
     }
 }

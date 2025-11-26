@@ -1,41 +1,36 @@
 using System.Collections;
 using UnityEngine;
-
+using DG.Tweening;
+using System;
 public class PlayerTrigger : MonoBehaviour
 {
+    public event Action<Bullet> OnHitBullet;
+
     private PlayerIdentity playerIdentity;
-    private PlayerHealth playerHealth;
-    private HealthUI healthUI;
     private void Awake()
     {
         playerIdentity = GetComponent<PlayerIdentity>();
-        playerHealth = GetComponent<PlayerHealth>();
-        healthUI = GetComponentInChildren<HealthUI>();
     }
     private void OnTriggerEnter(Collider other)
     {
         var bullet = other.gameObject.GetComponent<Bullet>();
-        if (bullet.BulletID == playerIdentity.PlayerID)
-            return;
-
         if (bullet != null)
-            StartBulletTriggerSequnce(bullet);
+            OnHitBullet?.Invoke(bullet);
     }
-    private IEnumerator BulletTriggerSequence(Bullet bullet)
+
+    private void OnEnable()
+    {
+        OnHitBullet += PlayerTrigger_OnHitBullet;
+    }
+    private void OnDisable()
+    {
+        OnHitBullet -= PlayerTrigger_OnHitBullet;
+    }
+    private void PlayerTrigger_OnHitBullet(Bullet bullet)
     {
         VFXManager.Instance.PlayHitVFX(bullet.transform.position);
-
-        int damageAmount = Consts.GameDamage.FIREBALL_DAMAGE;
-        playerHealth.TakeDamage(damageAmount);
-        healthUI.HandleHealthChange(playerHealth.CurrentHealth, playerHealth.MaxHealth, 2f);
         bullet.DestroyPrefab();
-        yield return new WaitForSeconds(2f);
-        TurnManager.Instance.AdvanceTurn();
-        BoardManager.Instance.ResetSelectCount();
     }
 
-    private void StartBulletTriggerSequnce(Bullet bullet)
-    {
-        StartCoroutine(BulletTriggerSequence(bullet));
-    }
+
 }

@@ -12,25 +12,26 @@ public class Tile : MonoBehaviour
     private Color tileColor;
     private int tileHeight;
     private int tileWidth;
-    public void SetupTile(int height, int width, Sprite selected, Sprite hiddenSprite)
+    public void SetupTile(int height, int width, Sprite tileSprite, Sprite hiddenSprite,Color color)
     {
         //Board da tilelarý nötr olarak ayarlýyoruz
         tileHeight = height;
         tileWidth = width;
-        actualImage.sprite = selected;
+        actualImage.sprite = tileSprite;
         hiddenImage.sprite = hiddenSprite;
+        tileColor = color;
     }
     public void SetBackgroundColor(Color color)
     {
         tileBackgroundImage.color = color;
     }
-    public void SetTileSprite(Sprite sprite)
-    {
-        actualImage.sprite = sprite;
-    }
     public Sprite GetActualSprite()
     {
         return actualImage.sprite;
+    }
+    public Color GetTileColor()
+    {
+        return tileColor;
     }
     public void OnMouseDown()
     {

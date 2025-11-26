@@ -4,8 +4,6 @@ using UnityEngine.UI;
 
 public class HealthUI : MonoBehaviour
 {
-    private const float HEALTH_FILL_LERP_SPEED = 2f;
-
     [Header("UI Settings")]
     [SerializeField] private Image imageFill;
     [SerializeField] private Image remainFill;
@@ -38,7 +36,7 @@ public class HealthUI : MonoBehaviour
         yield return new WaitForSeconds(delayTime);
         while(remainFill.fillAmount > imageFill.fillAmount)
         {
-            remainFill.fillAmount = Mathf.MoveTowards(remainFill.fillAmount, imageFill.fillAmount, HEALTH_FILL_LERP_SPEED * Time.deltaTime);
+            remainFill.fillAmount = Mathf.MoveTowards(remainFill.fillAmount, imageFill.fillAmount, Consts.GameSetup.HEALTH_FILL_LERP_SPEED * Time.deltaTime);
 
             yield return null;
         }

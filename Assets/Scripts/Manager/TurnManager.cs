@@ -6,13 +6,19 @@ public class TurnManager : MonoBehaviour
 {
     public static TurnManager Instance;
 
+    [HideInInspector]
+    public int currentPlayerIndex;
+    [HideInInspector]
     public List<PlayerIdentity> playerIdentities = new List<PlayerIdentity>();
+    [HideInInspector]
     public List<PlayerIdentity> targetIdentities = new List<PlayerIdentity>();
 
     private PlayerIdentity currentPlayer;
     private PlayerIdentity targetPlayer;
-    private int currentPlayerIndex;
+    
     private int minimumPlayerCount = 2;
+
+    private bool canDoubleDamage;
     private void Awake()
     {
         #region Singleton
@@ -34,7 +40,7 @@ public class TurnManager : MonoBehaviour
 
     public void StartGame()
     {
-        BoardManager.Instance.ResetSelectCount();
+        BoardManager.Instance.ResetSelectedTiles();
 
         if(playerIdentities.Count >= minimumPlayerCount)
         {
@@ -58,9 +64,9 @@ public class TurnManager : MonoBehaviour
         currentPlayer.GetComponentInChildren<PlayerAnimationController>().PlayActiveIdleAnimation();
 
         ClearTargets();
-        ResetPlayersInvulnerableStatue();
+        ResetPlayersInvulnerableStatus();
     }
-    private void ResetPlayersInvulnerableStatue()
+    private void ResetPlayersInvulnerableStatus()
     {
         foreach (var player in playerIdentities)
         {
@@ -85,6 +91,14 @@ public class TurnManager : MonoBehaviour
     public void SetTargetPlayer(PlayerIdentity target)
     {
         targetPlayer = target;
+    }
+    public void SetDoubleDamageState(bool isActive)
+    {
+        canDoubleDamage = isActive;
+    }
+    public bool CanDoubleDamage()
+    {
+        return canDoubleDamage;
     }
     public List<PlayerIdentity> GetTargetList()
     {

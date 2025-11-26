@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class PlayerVisual : MonoBehaviour
 {
+    [Header("Visual Settings")]
+    public GameObject bodyVisual;
+
     private PlayerHealth playerHealth;
     private MeshRenderer meshRenderer;
 

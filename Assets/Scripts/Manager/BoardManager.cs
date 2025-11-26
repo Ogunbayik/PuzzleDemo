@@ -1,15 +1,15 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class BoardManager : MonoBehaviour
 {
     public static BoardManager Instance;
 
-    public event Action OnMatch;
-    public event Action OnMiss;
-    public event Action OnClickBomb;
+    public event Action<PlayerIdentity> OnClickBomb;
 
     [Header("Game Settings")]
     [SerializeField] private int playerCount;
@@ -20,22 +20,26 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private int height;
     [SerializeField] private float tileScale;
     [SerializeField] private GameObject tilePrefab;
-    [SerializeField] private Sprite questionSprite;
-    [SerializeField] private Sprite bombSprite;
     [Header("Color Settings")]
     [SerializeField] private Color selectedColor;
-    [SerializeField] private Color playerOneColor;
-    [SerializeField] private Color playerTwoColor;
-    [Header("Particle Settings")]
-    [SerializeField] private GameObject explosionVFX;
-
-    public List<Sprite> allGreenTypeSprites = new List<Sprite>();
-    public List<Sprite> allRedTypeSprites = new List<Sprite>();
+    [Header("UI Settings")]
+    [SerializeField] private Sprite questionSprite;
+    [SerializeField] private Sprite bombSprite;
+    public List<Sprite> greenSprites = new List<Sprite>();
+    public List<Sprite> redSprites = new List<Sprite>();
+    public List<Sprite> yellowSprites = new List<Sprite>();
+    public List<Sprite> blueSprites = new List<Sprite>();
     public List<Sprite> availableSprites = new List<Sprite>();
+
+    private List<Sprite> copyGreenSprites;
+    private List<Sprite> copyRedSprites;
+    private List<Sprite> copyYellowSprites;
+    private List<Sprite> copyBlueSprites;
 
     private Tile selectedTile;
     private Tile checkedTile;
 
+    private Color tileColor;
     private int playerSpriteCount;
     private int selectCount;
     private int maxSelectCount = 2;
@@ -43,6 +47,12 @@ public class BoardManager : MonoBehaviour
     {
         Instance = this;
         selectedTile = null;
+
+        copyGreenSprites = new List<Sprite>(greenSprites);
+        copyRedSprites = new List<Sprite>(redSprites);
+        copyYellowSprites = new List<Sprite>(yellowSprites);
+        copyBlueSprites = new List<Sprite>(blueSprites);
+
     }
     private void Start()
     {
@@ -51,30 +61,34 @@ public class BoardManager : MonoBehaviour
     }
     private void SetRandomAvailableList()
     {
-        //Board 25
+        //Demo for 25 Tile
         var boardTileCount = height * width;
         //Remain 24
         var remainTileCount = boardTileCount - bombCount;
-        var copyGreenList = allGreenTypeSprites;
-        var copyRedList = allRedTypeSprites;
-        //PlayerSpriteCount = 12
+        //PlayerSpriteCount = 6
         playerSpriteCount = remainTileCount / playerCount;
         for (int i = 0; i < spriteCount; i++)
         {
-            var randomGreenIndex = UnityEngine.Random.Range(0, allGreenTypeSprites.Count);
-            var randomRedIndex = UnityEngine.Random.Range(0, allRedTypeSprites.Count);
+            var randomGreenIndex = UnityEngine.Random.Range(0, copyGreenSprites.Count);
+            var randomRedIndex = UnityEngine.Random.Range(0, copyRedSprites.Count);
+            var randomBlueIndex = UnityEngine.Random.Range(0, copyBlueSprites.Count);
+            var randomYellowIndex = UnityEngine.Random.Range(0, copyYellowSprites.Count);
 
-            //EachCount = 6
+            //EachCount = 3
             var eachCount = playerSpriteCount / spriteCount;
             for (int j = 0; j < eachCount; j++)
             {
-                availableSprites.Add(copyGreenList[randomGreenIndex]);
-                availableSprites.Add(copyRedList[randomRedIndex]);
+                availableSprites.Add(copyGreenSprites[randomGreenIndex]);
+                availableSprites.Add(copyRedSprites[randomRedIndex]);
+                availableSprites.Add(copyYellowSprites[randomYellowIndex]);
+                availableSprites.Add(copyBlueSprites[randomBlueIndex]);
             }
 
             //Oyunu reset attýðýmýz zaman tüm spritelar silinmesin diye copy olarak aldýk.
-            copyGreenList.RemoveAt(randomGreenIndex);
-            copyRedList.RemoveAt(randomRedIndex);
+            copyGreenSprites.RemoveAt(randomGreenIndex);
+            copyRedSprites.RemoveAt(randomRedIndex);
+            copyYellowSprites.RemoveAt(randomYellowIndex);
+            copyBlueSprites.RemoveAt(randomBlueIndex);
         }
 
         availableSprites.Add(bombSprite);
@@ -89,17 +103,14 @@ public class BoardManager : MonoBehaviour
     private void SetupBoard()
     {
         selectCount = maxSelectCount;
-        var totalCount = height * width;
-        var remaintTileCount = totalCount - bombCount;
-        //For PlayerCount = 2
-        var playerOneCount = remaintTileCount / 2;
-        var playerTwoCount = remaintTileCount / 2;
+
         for (int i = 0; i < height; i++)
         {
             for (int j = 0; j < width; j++)
             {
                 var spawnPosition = Vector3.zero;
-                spawnPosition.Set(i * tileScale, 1f, j * tileScale);
+                var offsetY = 1f;
+                spawnPosition.Set(i * tileScale, offsetY, j * tileScale);
 
                 var tile = Instantiate(tilePrefab, spawnPosition, Quaternion.identity);
                 tile.transform.position = spawnPosition;
@@ -107,7 +118,17 @@ public class BoardManager : MonoBehaviour
                 tile.name = $"[{i},{j}]";
 
                 var randomAvailableSprite = GetRandomAvailableSprite();
-                tile.GetComponent<Tile>().SetupTile(i, j, randomAvailableSprite, questionSprite);
+
+                if (greenSprites.Contains(randomAvailableSprite))
+                    tileColor = GameManager.Instance.playerColors[Consts.GameSetup.GREEN_COLOR_INDEX];
+                else if (blueSprites.Contains(randomAvailableSprite))
+                    tileColor = GameManager.Instance.playerColors[Consts.GameSetup.BLUE_COLOR_INDEX];
+                else if (redSprites.Contains(randomAvailableSprite))
+                    tileColor = GameManager.Instance.playerColors[Consts.GameSetup.RED_COLOR_INDEX];
+                else if (yellowSprites.Contains(randomAvailableSprite))
+                    tileColor = GameManager.Instance.playerColors[Consts.GameSetup.YELLOW_COLOR_INDEX];
+
+                tile.GetComponent<Tile>().SetupTile(i, j, randomAvailableSprite, questionSprite, tileColor);
             }
         }
     }
@@ -128,7 +149,6 @@ public class BoardManager : MonoBehaviour
             {
                 selectCount = maxSelectCount;
                 CheckedForMatch(selectedTile, null);
-                //StartCoroutine(RefreshBoardSequence(selectedTile, null));
             }
 
         }
@@ -160,72 +180,80 @@ public class BoardManager : MonoBehaviour
             var checkTileSprite = checkedTile.GetActualSprite();
             if (checkTileSprite == bombSprite)
             {
-                StartCoroutine(HandleClickBombSequence(selectedTile, checkedTile));
-                OnClickBomb?.Invoke();
+                HandleClickBombSequence(selectedTile, checkedTile);
             }
             else if (selectedTileSprite == checkTileSprite)
             {
-                StartCoroutine(HandleCorrectMatchSequence(selectedTile, checkedTile));
-                OnMatch?.Invoke();
+                HandleCorrectMatchSequence(selectedTile, checkedTile);
             }
             else
             {
-                StartCoroutine(HandleMissMatchSequence(selectedTile, checkedTile));
-                OnMiss?.Invoke();
+                HandleMissMatchSequence(selectedTile, checkedTile);
             }
         }
         else
         {
             //First selected tile is the bomb
-            StartCoroutine(HandleClickBombSequence(selectedTile, checkedTile));
+            HandleClickBombSequence(selectedTile, checkedTile);
         }
     }
-    private IEnumerator HandleClickBombSequence(Tile selectedTile, Tile checkedTile)
+    private void HandleClickBombSequence(Tile selectedTile, Tile checkedTile)
     {
-        yield return new WaitForSeconds(Consts.TileAnimationTime.OPEN_ANIMATION_TIME);
-
-        if (checkedTile != null)
-            VFXManager.Instance.PlayExplosionVFX(checkedTile.transform.position);
-        else
-            VFXManager.Instance.PlayExplosionVFX(selectedTile.transform.position);
-        yield return new WaitForSeconds(2f);
+        Sequence bombSequence = DOTween.Sequence();
+        //First Part
+        bombSequence.AppendInterval(Consts.TileAnimationTime.OPEN_ANIMATION_DURATION);
+        bombSequence.AppendCallback(() => VFXManager.Instance.PlayExplosionVFX(checkedTile != null ? checkedTile.transform.position : selectedTile.transform.position));
+        //Second Part
         var currentPlayer = TurnManager.Instance.GetCurrentPlayer();
-        var playerHealth = currentPlayer.GetComponent<PlayerHealth>();
-        var healthUI = currentPlayer.GetComponentInChildren<HealthUI>();
-        playerHealth.TakeDamage(Consts.GameDamage.BOMB_DAMAGE);
-        healthUI.HandleHealthChange(playerHealth.CurrentHealth, playerHealth.MaxHealth, 2f);
-        yield return new WaitForSeconds(2f);
-        RefreshBoard();
+        bombSequence.AppendInterval(Consts.DelayTime.EXPLOSION_VFX_DURATION);
+        bombSequence.AppendCallback(() => OnClickBomb?.Invoke(currentPlayer));
+        //Last Part
+        bombSequence.AppendInterval(Consts.DelayTime.REFRESH_BOARD_DELAY);
+        bombSequence.AppendCallback(() => RefreshBoard());
     }
-    private IEnumerator HandleCorrectMatchSequence(Tile selectedTile, Tile checkedTile)
+    private void HandleCorrectMatchSequence(Tile selectedTile, Tile checkedTile)
     {
-        TurnManager.Instance.SetTargetList();
-        Debug.Log("CONGRATZ.. Player can attack other one");
-        yield return new WaitForSeconds(Consts.TileAnimationTime.OPEN_ANIMATION_TIME);
-        //selectedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
-        //checkedTile.SetBackgroundColor(isPlayerOneTurn ? playerOneColor : playerTwoColor);
-        yield return new WaitForSeconds(0.5f);
-        Debug.Log("Write Correct or Incorret");
-        yield return new WaitForSeconds(0.5f);
-        selectedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
-        checkedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation();
-        yield return new WaitForSeconds(1f);
-        //Burada Player için seçim yapýlacak diðer playerlar görünecek.
-        int targetCount = TurnManager.Instance.GetTargetList().Count;
-        GameUIManager.Instance.SetupPanel(targetCount);
+        Sequence correctSequence = DOTween.Sequence();
+        //First Part
+        correctSequence.AppendCallback(() => TurnManager.Instance.SetTargetList());
+        //Second Part
+        var currentPlayerVisual = TurnManager.Instance.GetCurrentPlayer().GetComponent<PlayerVisual>();
+        correctSequence.AppendInterval(Consts.TileAnimationTime.OPEN_ANIMATION_DURATION);
+        correctSequence.AppendCallback(() => selectedTile.SetBackgroundColor(currentPlayerVisual.PlayerColor));
+        correctSequence.JoinCallback(() => checkedTile.SetBackgroundColor(currentPlayerVisual.PlayerColor));
+        correctSequence.JoinCallback(() => CheckPlayerColor(currentPlayerVisual, checkedTile));
+        //Third Part
+        correctSequence.AppendInterval(Consts.TileAnimationTime.ANIMATION_DELAY_SHORT);
+        correctSequence.AppendCallback(() => selectedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation());
+        correctSequence.JoinCallback(() => checkedTile.GetComponent<TileAnimationController>().PlayMatchTileAnimation());
+        //Last Part
+        var targetCount = TurnManager.Instance.GetTargetList().Count;
+        correctSequence.AppendInterval(Consts.TileAnimationTime.OPEN_PANEL_DELAY);
+        correctSequence.AppendCallback(() => GameUIManager.Instance.SetupPanel(targetCount));
     }
-    private IEnumerator HandleMissMatchSequence(Tile selectedTile, Tile checkedTile)
+    private void CheckPlayerColor(PlayerVisual player, Tile matchTile)
     {
-        Debug.Log("NOOOOO.. Player turn must change");
-        yield return new WaitForSeconds(Consts.TileAnimationTime.OPEN_ANIMATION_TIME);
-        selectedTile.GetComponent<TileAnimationController>().PlayMissTileAnimation();
-        checkedTile.GetComponent<TileAnimationController>().PlayMissTileAnimation();
-        yield return new WaitForSeconds(0.5f);
-        selectedTile.SetBackgroundColor(Color.white);
-        checkedTile.SetBackgroundColor(Color.white);
-        yield return new WaitForSeconds(1f);
-        ResetSelectCount();
-        TurnManager.Instance.AdvanceTurn();
+        //Check currentPlayer damage with multiply or not..
+        if (player.PlayerColor == matchTile.GetTileColor())
+            TurnManager.Instance.SetDoubleDamageState(true);
+        else
+            TurnManager.Instance.SetDoubleDamageState(false);
+    }
+    private void HandleMissMatchSequence(Tile selectedTile, Tile checkedTile)
+    {
+        Sequence missSequence = DOTween.Sequence();
+        //First Part
+        missSequence.AppendInterval(Consts.TileAnimationTime.CLOSE_ANIMATION_DURATION);
+        missSequence.AppendCallback(() => selectedTile.GetComponent<TileAnimationController>().PlayMissTileAnimation());
+        missSequence.JoinCallback(() => checkedTile.GetComponent<TileAnimationController>().PlayMissTileAnimation());
+        //Second Part
+        missSequence.AppendInterval(Consts.TileAnimationTime.ANIMATION_DELAY_SHORT);
+        missSequence.AppendCallback(() => selectedTile.SetBackgroundColor(Color.white));
+        missSequence.JoinCallback(() => checkedTile.SetBackgroundColor(Color.white));
+        //Last Part 
+        missSequence.AppendInterval(Consts.DelayTime.ADVANCE_TURN_DELAY);
+        missSequence.AppendCallback(() => TurnManager.Instance.AdvanceTurn());
+        missSequence.JoinCallback(() => ResetSelectedTiles());
     }
     private void RefreshBoard()
     {
@@ -237,7 +265,7 @@ public class BoardManager : MonoBehaviour
         foreach (var tile in allTiles)
             tile.GetComponent<TileAnimationController>().PlayRandomFallAnimation();
     }
-    public void ResetSelectCount()
+    public void ResetSelectedTiles()
     {
         selectCount = 0;
         selectedTile = null;
